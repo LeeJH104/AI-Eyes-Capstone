@@ -36,7 +36,7 @@ GitHub 로그인 → [New Repository] 클릭
 
 체크: Initialize this repository with README ✅
 
-생성 후 저장소 주소 복사: https://github.com/yourid/ai-eyes-capstone.git
+생성 후 저장소 주소 복사: https://github.com/LeeJH104/AI-Eyes-Capstone.git
 
 
 ✅ 2단계. Android Studio에서 Git 연동 설정
@@ -59,7 +59,7 @@ Android Studio 메뉴 → VCS → Enable Version Control Integration → Git
 
 git init
 
-git remote add origin https://github.com/yourid/ai-eyes-capstone.git
+git remote add origin https://github.com/LeeJH104/AI-Eyes-Capstone.git
 
 git add .
 
@@ -87,7 +87,7 @@ GitHub 저장소 → Settings → Collaborators
 
 -bash- 
 
-git clone https://github.com/yourid/ai-eyes-capstone.git --> https://github.com/LeeJH104/AI-Eyes-Capstone.git
+git clone https://github.com/LeeJH104/AI-Eyes-Capstone.git
 
 cd ai-eyes-capstone
 
