@@ -130,3 +130,102 @@ git push origin feature/nav       # GitHub에 올리기
 TTS/STT 테스트 오류	AndroidManifest.xml에 마이크, 인터넷, TTS 권한 추가
 
 충돌 방지	항상 git pull origin dev 후 작업 시작
+
+
+## ✅ 팀원이 기존 브랜치에서 작업 시작하는 방법
+🔹 1. GitHub 저장소 클론
+팀원이 로컬에 저장소가 없다면 먼저 클론합니다:
+
+Android Studio에서:
+
+File > New > Project from Version Control > Git
+
+URL 붙여넣고 Clone
+
+🔹 2. 원격 브랜치 목록 확인
+
+-bash-
+
+git fetch
+
+git branch -r
+
+
+출력 예시:
+
+-bash-
+
+origin/main
+
+origin/voice-assist
+
+origin/object-detection
+
+
+🔹 3. 작업하려는 브랜치를 로컬로 가져오기
+예: feature/nav 브랜치에서 작업하려면
+
+-bash-
+
+git checkout -b feature/nav origin/feature/nav
+
+or
+
+-bash-
+
+git switch -c feature/nav origin/feature/nav
+
+✔ 이 명령은 origin/feature/nav라는 원격 브랜치를 로컬로 복제하고 해당 브랜치로 이동하는 것입니다.
+
+🔹 4. 코드 작성 → 커밋 → 푸시
+코드를 작성한 후 아래 명령어로 변경사항을 저장하고 GitHub에 올립니다:
+
+-bash-
+
+git add .
+
+git commit -m "작업한 기능 설명 예: Add voice command handler"
+
+git push origin voice-assist
+
+🔹 5. Pull Request 만들기 (GitHub에서)
+
+GitHub 웹사이트에서 voice-assist 브랜치를 선택 후
+
+→ "Compare & pull request" 클릭
+
+→ 작업 내용 작성하고 PR 생성
+
+→ 팀장이 확인 후 main에 병합
+
+🔄 6. 다른 팀원 작업 반영 (선택)
+
+최신 코드를 반영하고 싶다면:
+
+-bash-
+
+git checkout main
+
+git pull origin main
+
+git checkout voice-assist
+
+git merge main    # main의 최신 내용을 현재 브랜치에 병합
+
+📌 요약: 브랜치 별로 작업 시작하는 명령어 예시
+원격 브랜치 이름	                작업 명령어
+origin/dev	                    git checkout -b dev origin/dev 또는 git switch -c dev origin/dev
+origin/feature/nav	            git checkout -b feature/nav origin/feature/nav
+origin/feature/obstacle	        git checkout -b feature/obstacle origin/feature/obstacle
+origin/feature/receipt	        git checkout -b feature/receipt origin/feature/receipt
+
+✅ 브랜치 연결되었는지 확인하려면
+체크아웃 후 다음 명령으로 확인할 수 있어요:
+
+-bash-
+
+git branch -vv
+
+해당 브랜치 옆에 origin/feature/xxx처럼 뜨면, 원격과 연결(추적)된 상태입니다.
+
+이제 브랜치를 로컬로 잘 가져왔으면, 각자 기능별 브랜치에서 코딩하고 커밋 + 푸시 + PR 하면 됩니다.
