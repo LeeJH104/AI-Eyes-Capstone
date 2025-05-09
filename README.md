@@ -38,6 +38,7 @@ GitHub 로그인 → [New Repository] 클릭
 
 생성 후 저장소 주소 복사: https://github.com/yourid/ai-eyes-capstone.git
 
+
 ✅ 2단계. Android Studio에서 Git 연동 설정
 🔸 Android Studio에서 새 프로젝트 생성
 언어: Java
@@ -53,15 +54,24 @@ Android Studio 메뉴 → VCS → Enable Version Control Integration → Git
 
 명령어 입력:
 
+
 -bash-
+
 git init
+
 git remote add origin https://github.com/yourid/ai-eyes-capstone.git
+
 git add .
+
 git commit -m "Initial commit(초기 커밋)"
+
 git branch -M main
+
 git push -u origin main
 
+
 ✅ 이로써 로컬 Android 프로젝트가 GitHub와 연결됩니다.
+
 
 ✅ 3단계. 팀원 GitHub 협업 세팅
 🔸 팀원 초대
@@ -74,11 +84,16 @@ GitHub 저장소 → Settings → Collaborators
 🔸 팀원 로컬 프로젝트 복제
 각 팀원은 아래 명령어로 프로젝트 복제:
 
+
 -bash- 
+
 git clone https://github.com/yourid/ai-eyes-capstone.git --> https://github.com/LeeJH104/AI-Eyes-Capstone.git
+
 cd ai-eyes-capstone
 
+
 Android Studio에서 Open Project로 열면 바로 사용 가능.
+
 
 ✅ 4단계. 협업을 위한 브랜치 전략
 📁 추천 브랜치 구조
@@ -89,17 +104,29 @@ feature/nav	네비게이션 기능 (팀원 A)
 feature/receipt	영수증 기능 (팀원 B)
 feature/obstacle	장애물 탐지 기능 (팀원 C)
 
+
 🔄 개발 절차 예시 (팀원)
 
+
 -bash-
+
 git checkout -b feature/nav       # 기능 브랜치 생성
+
 ... 작업 ...
+
 git add .
+
 git commit -m "Add: 목적지 음성입력 기능"
+
 git push origin feature/nav       # GitHub에 올리기
 
+
 ✅ 추가 팁: 안드로이드에서 자주 발생하는 실수 방지
+
 항목	조치 방법
+
 프로젝트 열 때 에러 발생	File → Invalidate Caches / Restart 시도
+
 TTS/STT 테스트 오류	AndroidManifest.xml에 마이크, 인터넷, TTS 권한 추가
+
 충돌 방지	항상 git pull origin dev 후 작업 시작
