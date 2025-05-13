@@ -16,22 +16,39 @@ AI 기반 시각장애인 보조 앱 개발 프로젝트입니다.
 
 ## 📁 폴더 구조
  예시 :
+  
   com.example.aieyes/
+  
   ├── ui/   화면(Activity, Fragment)
+  
   │   ├── NavigationActivity.java
+  
   │   ├── ReceiptActivity.java
+  
   │   ├── ObstacleActivity.java
+  
   │   └── ... (필요 시 Fragment 등)
+  
   ├── service/  기능 처리
+  
   │   ├── NavigationService.java
+  
   │   ├── ReceiptOCRService.java
+  
   │   ├── ObjectDetectionService.java
+  
   │   └── ...
+  
   ├── utils/    공통 유틸 (TTSManager 등)
+  
   │   ├── TTSManager.java
+  
   │   ├── LocationHelper.java
+  
   │   ├── ImageUtil.java
+  
   │   └── PermissionHelper.java
+
 
 ## Android Studio(Java)와 GitHub를 사용해 협업 개발을 과정
 
@@ -194,6 +211,7 @@ git switch -c feature/nav origin/feature/nav
 ✔ 이 명령은 origin/feature/nav라는 원격 브랜치를 로컬로 복제하고 해당 브랜치로 이동하는 것입니다.
 
 만약 fatal: a branch named 'feature/nav' already exists 라고 뜬다면 
+
 이미 만들어져 있으니까, 새로 만들 필요 없이 그냥 브랜치 전환만 하면 됩니다:
 
 -bash-
