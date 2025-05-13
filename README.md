@@ -15,11 +15,23 @@ AI 기반 시각장애인 보조 앱 개발 프로젝트입니다.
 - feature/nav, feature/receipt, feature/obstacle 등
 
 ## 📁 폴더 구조
-com.example.aieyes/
-- /ui : 화면(Activity, Fragment)
-- /service : 기능 처리
-- /utils : 공통 유틸 (TTSManager 등)
-
+ 예시 :
+  com.example.aieyes/
+  ├── ui/   화면(Activity, Fragment)
+  │   ├── NavigationActivity.java
+  │   ├── ReceiptActivity.java
+  │   ├── ObstacleActivity.java
+  │   └── ... (필요 시 Fragment 등)
+  ├── service/  기능 처리
+  │   ├── NavigationService.java
+  │   ├── ReceiptOCRService.java
+  │   ├── ObjectDetectionService.java
+  │   └── ...
+  ├── utils/    공통 유틸 (TTSManager 등)
+  │   ├── TTSManager.java
+  │   ├── LocationHelper.java
+  │   ├── ImageUtil.java
+  │   └── PermissionHelper.java
 
 ## Android Studio(Java)와 GitHub를 사용해 협업 개발을 과정
 
