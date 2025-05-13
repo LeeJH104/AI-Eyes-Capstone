@@ -142,6 +142,7 @@ File > New > Project from Version Control > Git
 
 URL 붙여넣고 Clone
 
+
 🔹 2. 원격 브랜치 목록 확인
 
 -bash-
@@ -177,6 +178,20 @@ git switch -c feature/nav origin/feature/nav
 
 ✔ 이 명령은 origin/feature/nav라는 원격 브랜치를 로컬로 복제하고 해당 브랜치로 이동하는 것입니다.
 
+만약 fatal: a branch named 'feature/nav' already exists 라고 뜬다면 
+이미 만들어져 있으니까, 새로 만들 필요 없이 그냥 브랜치 전환만 하면 됩니다:
+
+-bash-
+
+git checkout feature/nav
+
+or
+
+-bash-
+
+git switch feature/nav
+
+
 🔹 4. 코드 작성 → 커밋 → 푸시
 코드를 작성한 후 아래 명령어로 변경사항을 저장하고 GitHub에 올립니다:
 
@@ -188,6 +203,7 @@ git commit -m "작업한 기능 설명 예: Add voice command handler"
 
 git push origin voice-assist
 
+
 🔹 5. Pull Request 만들기 (GitHub에서)
 
 GitHub 웹사이트에서 voice-assist 브랜치를 선택 후
@@ -197,6 +213,7 @@ GitHub 웹사이트에서 voice-assist 브랜치를 선택 후
 → 작업 내용 작성하고 PR 생성
 
 → 팀장이 확인 후 main에 병합
+
 
 🔄 6. 다른 팀원 작업 반영 (선택)
 
