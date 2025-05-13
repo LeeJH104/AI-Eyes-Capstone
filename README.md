@@ -147,9 +147,11 @@ URL 붙여넣고 Clone
 
 -bash-
 
-git fetch
+git fetch   // 원격 저장소의 브랜치 정보를 갱신
 
-git branch -r
+git branch -r   // 원격에 있는 브랜치 목록만 보여줌
+
+git branch  // 내 위치(현재 브랜치)
 
 
 출력 예시:
