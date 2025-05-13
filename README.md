@@ -126,12 +126,19 @@ Android Studio에서 Open Project로 열면 바로 사용 가능.
 
 
 ✅ 4단계. 협업을 위한 브랜치 전략
+
 📁 추천 브랜치 구조
+
 브랜치명	용도
+
 main	최종 완성 코드 (팀장만 병합)
+
 dev	테스트용 통합 브랜치
+
 feature/nav	네비게이션 기능 (팀원 A)
+
 feature/receipt	영수증 기능 (팀원 B)
+
 feature/obstacle	장애물 탐지 기능 (팀원 C)
 
 
@@ -163,7 +170,9 @@ TTS/STT 테스트 오류	AndroidManifest.xml에 마이크, 인터넷, TTS 권한
 
 
 ## ✅ 팀원이 기존 브랜치에서 작업 시작하는 방법
+
 🔹 1. GitHub 저장소 클론
+
 팀원이 로컬에 저장소가 없다면 먼저 클론합니다:
 
 Android Studio에서:
@@ -196,6 +205,7 @@ origin/object-detection
 
 
 🔹 3. 작업하려는 브랜치를 로컬로 가져오기
+
 예: feature/nav 브랜치에서 작업하려면
 
 -bash-
@@ -226,6 +236,7 @@ git switch feature/nav
 
 
 🔹 4. 코드 작성 → 커밋 → 푸시
+
 코드를 작성한 후 아래 명령어로 변경사항을 저장하고 GitHub에 올립니다:
 
 -bash-
@@ -263,13 +274,19 @@ git checkout voice-assist
 git merge main    # main의 최신 내용을 현재 브랜치에 병합
 
 📌 요약: 브랜치 별로 작업 시작하는 명령어 예시
+
 원격 브랜치 이름	                작업 명령어
+
 origin/dev	                    git checkout -b dev origin/dev 또는 git switch -c dev origin/dev
+
 origin/feature/nav	            git checkout -b feature/nav origin/feature/nav
+
 origin/feature/obstacle	        git checkout -b feature/obstacle origin/feature/obstacle
+
 origin/feature/receipt	        git checkout -b feature/receipt origin/feature/receipt
 
 ✅ 브랜치 연결되었는지 확인하려면
+
 체크아웃 후 다음 명령으로 확인할 수 있어요:
 
 -bash-
