@@ -15,6 +15,7 @@ AI 기반 시각장애인 보조 앱 개발 프로젝트입니다.
 - feature/nav, feature/receipt, feature/obstacle 등
 
 ## 📁 폴더 구조
+com.example.aieyes/
 - /ui : 화면(Activity, Fragment)
 - /service : 기능 처리
 - /utils : 공통 유틸 (TTSManager 등)
