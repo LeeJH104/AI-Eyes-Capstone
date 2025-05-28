@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -16,8 +16,14 @@
         android:id="@+id/img_result"
         android:layout_width="300dp"
         android:layout_height="300dp"
-        android:layout_marginTop="24dp"
-        android:scaleType="centerCrop"
-        android:contentDescription="촬영된 이미지" />
+        android:layout_marginTop="16dp"
+        android:scaleType="centerCrop" />
 
+    <TextView
+        android:id="@+id/txt_result"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="분석 결과 출력 예정"
+        android:textSize="16sp"/>
 </LinearLayout>
