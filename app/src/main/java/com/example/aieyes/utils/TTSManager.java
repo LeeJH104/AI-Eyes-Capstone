@@ -79,6 +79,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        setContentView(R.layout.activity_main);
+
         // 1. TTSManager 초기화 (반드시 Context를 넘겨야 함)
         ttsManager = new TTSManager(this);
 
