@@ -1,40 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.MainActivity">
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center">
+
+    <TextView
+        android:id="@+id/result_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="녹음된 내용"
+        android:textSize="20sp"
+        android:padding="16dp"
+        android:background="#EEEEEE"
+        android:gravity="center"
+        android:textColor="#000000" />
 
     <Button
-        android:id="@+id/speak_button"
-        android:layout_width="wrap_content"
+        android:id="@+id/stt_button"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="음성 안내 듣기"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="200dp" />
-
-    <Button
-        android:id="@+id/vibrate_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="진동 테스트"
-        app:layout_constraintTop_toBottomOf="@id/speak_button"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:text="음성 입력"
         android:layout_marginTop="24dp" />
 
     <Button
-        android:id="@+id/permission_button"
-        android:layout_width="0dp"
+        android:id="@+id/tts_button"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="권한 요청 테스트"
-        app:layout_constraintTop_toBottomOf="@id/vibrate_button"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_margin="16dp"/>
+        android:text="음성 출력"
+        android:layout_marginTop="12dp" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

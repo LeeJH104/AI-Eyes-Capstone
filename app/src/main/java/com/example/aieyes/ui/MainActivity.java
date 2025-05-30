@@ -2,6 +2,7 @@ package com.example.aieyes.ui;
 
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -12,64 +13,55 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.aieyes.R;
-import com.example.aieyes.utils.PermissionHelper;
+import com.example.aieyes.utils.STTManager;
 import com.example.aieyes.utils.TTSManager;
-import com.example.aieyes.utils.VibrationHelper;
 
 public class MainActivity extends AppCompatActivity {
 
+    private TextView resultTextView;
+    private Button sttButton, ttsButton;
     private TTSManager ttsManager;
+    private STTManager sttManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
 
-        // 1. TTSManager 초기화 (반드시 Context를 넘겨야 함)
-        ttsManager = new TTSManager(this);
+        // View 연결
+        resultTextView = findViewById(R.id.result_text);
+        sttButton = findViewById(R.id.stt_button);
+        ttsButton = findViewById(R.id.tts_button);
 
-        // 권한 요청 버튼
-        Button permissionBtn = findViewById(R.id.permission_button);
-        permissionBtn.setOnClickListener(v -> {
-            if (PermissionHelper.hasAllPermissions(this)) {
-                Toast.makeText(this, "이미 모든 권한이 허용되어 있습니다.", Toast.LENGTH_SHORT).show();
-            } else {
-                PermissionHelper.requestPermissions(this);
+        // TTS, STT 매니저 초기화
+        ttsManager = new TTSManager(this);
+        sttManager = new STTManager(this);
+
+        // STT 결과 리스너 설정
+        sttManager.setOnSTTResultListener(new STTManager.OnSTTResultListener() {
+            @Override
+            public void onSTTResult(String result) {
+                resultTextView.setText(result);
+            }
+
+            @Override
+            public void onSTTError(int errorCode) {
+                resultTextView.setText("인식 실패. 다시 시도해주세요.");
             }
         });
 
-        // 음성 안내 버튼
-        Button speakBtn = findViewById(R.id.speak_button);
-        speakBtn.setOnClickListener(v -> {
-            ttsManager.speak("안녕하세요. 음성 안내를 시작합니다.");
-            VibrationHelper.vibrateShort(this);  // 짧은 진동
-            Toast.makeText(this, "음성과 짧은 진동 호출됨", Toast.LENGTH_SHORT).show();
+        // 버튼 클릭 리스너 설정
+        sttButton.setOnClickListener(v -> sttManager.startListening());
+        ttsButton.setOnClickListener(v -> {
+            String text = resultTextView.getText().toString();
+            ttsManager.speak(text);
         });
-
-        // 진동 테스트 버튼
-        Button vibrateBtn = findViewById(R.id.vibrate_button);
-        vibrateBtn.setOnClickListener(v -> {
-            VibrationHelper.vibrateLong(this);  // 긴 진동
-            Toast.makeText(this, "긴 진동 호출됨", Toast.LENGTH_SHORT).show();
-        });
-    }
-
-    // 권한 요청 결과 콜백 처리
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String[] permissions,
-                                           @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        PermissionHelper.handlePermissionResult(requestCode, grantResults, this);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
-        // 3. Activity 종료 시 반드시 shutdown 호출 (메모리 누수 방지)
         ttsManager.shutdown();
+        sttManager.destroy();
     }
 }
