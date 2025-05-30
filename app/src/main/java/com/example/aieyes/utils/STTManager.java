@@ -70,7 +70,24 @@ public class STTManager {
 
             @Override
             public void onError(int error) {
-                String errorMsg = "음성 인식 오류 발생: " + error;
+                String errorMsg;
+                switch (error) {
+                    case SpeechRecognizer.ERROR_AUDIO:
+                        errorMsg = "오디오 에러";
+                        break;
+                    case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS:
+                        errorMsg = "퍼미션 없음";
+                        break;
+                    case SpeechRecognizer.ERROR_NO_MATCH:
+                        errorMsg = "음성을 인식하지 못했습니다. 다시 시도해주세요.";
+                        break;
+                    case SpeechRecognizer.ERROR_NETWORK:
+                        errorMsg = "네트워크 오류가 발생했습니다.";
+                        break;
+                    // 기타 에러 처리 추가 가능
+                    default:
+                        errorMsg = "음성 인식 오류 발생: " + error;
+                }
                 Log.e("STT", errorMsg);
                 Toast.makeText(activity, errorMsg, Toast.LENGTH_SHORT).show();
 
