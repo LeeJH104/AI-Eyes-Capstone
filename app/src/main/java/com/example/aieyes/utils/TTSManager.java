@@ -13,6 +13,14 @@ import java.util.Locale;
 public class TTSManager {
     private TextToSpeech tts;   // 안드로이드의 TTS 객체
     private boolean isInitialized = false;  // 초기화 여부 체크용 변수
+    private OnTTSReadyListener readyListener;  // 초기화 완료 시 실행될 콜백 인터페이스
+
+    /**
+     * 초기화 완료 리스너 인터페이스
+     */
+    public interface OnTTSReadyListener {
+        void onReady();
+    }
 
     /**
      * 생성자
@@ -31,11 +39,25 @@ public class TTSManager {
                     Log.e("TTSManager", "TTS: 한국어가 지원되지 않음");
                 } else {
                     isInitialized = true;
+                    if (readyListener != null) {
+                        readyListener.onReady(); // 초기화 완료 후 콜백 실행
+                    }
                 }
             } else {
                 Log.e("TTSManager", "TTS 초기화 실패");
             }
         });
+    }
+
+    /**
+     * 초기화 완료 콜백 등록 함수
+     * @param listener 초기화 완료 시 호출될 리스너
+     */
+    public void setOnTTSReadyListener(OnTTSReadyListener listener) {
+        this.readyListener = listener;
+        if (isInitialized && listener != null) {
+            listener.onReady(); // 이미 초기화된 상태면 즉시 실행
+        }
     }
 
     /**
