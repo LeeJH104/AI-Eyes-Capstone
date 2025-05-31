@@ -13,6 +13,12 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+/*
+⚠️ 기술적 제약 정리
+STT로 "허용" 말하면 직접 권한 창의 버튼 누르기 / 불가 / 보안 정책상 안드로이드 OS에서 막혀 있음
+ → 권한은 처음 1번만 승인하면 되므로 처음에만 다른 사람의 도움을 받아 승인하기
+*/
+
 /**
  * PermissionHelper는 앱에서 필요한 권한을 요청하고 처리하는 유틸리티 클래스입니다.
  * Android 6.0 이상에서 동작하며, 권한이 거부된 경우 앱 설정으로 유도하는 기능도 포함됩니다.
