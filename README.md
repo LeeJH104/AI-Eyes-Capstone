@@ -7,7 +7,7 @@ AI 기반 시각장애인 보조 앱 개발 프로젝트입니다.
 - Android Studio
 - Java
 - GitHub
-- TMAP API, OCR API, Gemini API
+- TMAP API, OCR API, Gemini API 등
 
 ## 🧱 브랜치 전략
 - main: 최종 안정 버전
@@ -20,6 +20,8 @@ AI 기반 시각장애인 보조 앱 개발 프로젝트입니다.
   com.example.aieyes/
   
   ├── ui/   화면(Activity, Fragment)
+
+  │   ├── MainActivity.java
   
   │   ├── NavigationActivity.java
   
@@ -43,9 +45,11 @@ AI 기반 시각장애인 보조 앱 개발 프로젝트입니다.
   
   │   ├── TTSManager.java
   
-  │   ├── LocationHelper.java
+  │   ├── STTManager.java
   
-  │   ├── ImageUtil.java
+  │   ├── VibrationHelper.java
+  
+  │   ├── GestureManager.java
   
   │   └── PermissionHelper.java
 
@@ -72,8 +76,6 @@ GitHub 로그인 → [New Repository] 클릭
 ✅ 2단계. Android Studio에서 Git 연동 설정
 🔸 Android Studio에서 새 프로젝트 생성
 언어: Java
-
-최소 SDK: API 30 (Android 11) 이상
 
 빈 액티비티로 시작
 
