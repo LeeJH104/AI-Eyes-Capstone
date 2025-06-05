@@ -11,7 +11,7 @@ AI 기반 시각장애인 보조 앱 개발 프로젝트입니다.
 
 ## 🧱 브랜치 전략
 - main: 최종 안정 버전
-- dev: 통합 테스트용
+- dev: 공통 코드 및 통합 테스트용
 - feature/nav, feature/receipt, feature/obstacle 등
 
 ## 📁 폴더 구조
