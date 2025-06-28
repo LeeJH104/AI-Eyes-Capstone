@@ -13,7 +13,7 @@
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:gravity="center"
-        android:text="네비게이션 기능:\n\n• '네비게이션'이라고 말하거나\n• 오른쪽으로 스와이프"
+        android:text="네비게이션 기능"
         android:textSize="24sp"
         android:textStyle="bold" />
 
@@ -31,7 +31,7 @@
         android:layout_height="match_parent"
         android:layout_weight="1"
         android:gravity="center"
-        android:text="영수증 기능:\n\n• '영수증'이라고 말하거나\n• 왼쪽으로 스와이프"
+        android:text="영수증 기능"
         android:textSize="24sp"
         android:textStyle="bold" />
 
