@@ -9,6 +9,8 @@ com.example.aieyes/
 
 ├── ui/
 
+│   ├── MainActivity.java
+
 │   ├── NavigationActivity.java
 
 │   ├── ReceiptActivity.java
