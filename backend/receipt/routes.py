@@ -30,7 +30,7 @@ def process_receipt_route():
         structured_data = processor.structure_text_with_gemma(ocr_text)
         if not structured_data:
             return jsonify({"error": "Failed to structure data with LLM"}), 500
-            
+            #테스트용1
         print("API: Process completed successfully.")
         # 성공적으로 처리된 JSON 결과를 클라이언트(안드로이드 앱)에 반환합니다.
         return jsonify({"success": True, "data": structured_data})
