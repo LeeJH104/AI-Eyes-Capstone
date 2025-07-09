@@ -1,0 +1,20 @@
+# .gitignore 파일 내용
+
+# Hugging Face 캐시 폴더
+huggingface_cache/
+
+# Python 가상 환경 폴더 (사용한다면)
+.venv/
+venv/
+
+# Python 컴파일 파일 및 캐시
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# 민감 정보 파일 (실제 사용하는 파일 이름으로)
+.env
+garakey.env
+chinamoney-42dd61d0050f.json 
+# 기타 사용자가 추가한 민감 파일이나 빌드 결과물 등
