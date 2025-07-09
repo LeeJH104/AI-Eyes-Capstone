@@ -1,0 +1,76 @@
+{
+  "store_name": "탄동농협 해네) 마트",
+  "address": "대전 유성구 반석동_반석로기이(반석동",
+  "business_number": "318-82-00362",
+  "phone": "042-823-1760",
+  "date": "2024-08-17 11:31:45",
+  "total_price": 48360,
+  "items": [
+    {
+      "name": "P호박임(이공의) 로럴무드",
+      "unit_price": "2000",
+      "quantity": "3",
+      "total": "ㄴㄴ6000"
+    },
+    {
+      "name": "P 과리고추 (편근범): 로럴푸드",
+      "unit_price": "2000",
+      "quantity": "1",
+      "total": "2000"
+    },
+    {
+      "name": "P청양고추",
+      "unit_price": "1900",
+      "quantity": "1",
+      "total": "1900"
+    },
+    {
+      "name": "P앞디리살",
+      "unit_price": "8560",
+      "quantity": "1",
+      "total": "8560"
+    },
+    {
+      "name": "P올바른 심싱특관 30입",
+      "unit_price": "6000",
+      "quantity": "2",
+      "total": "13800"
+    },
+    {
+      "name": "P근대(정성문) 로어무드",
+      "unit_price": "2000",
+      "quantity": "2",
+      "total": "4000"
+    },
+    {
+      "name": "P애호박 (구재숙) 로럴무드",
+      "unit_price": "1000",
+      "quantity": "1",
+      "total": "1000"
+    },
+    {
+      "name": "P삶은고사리",
+      "unit_price": "4900",
+      "quantity": "1",
+      "total": "4900"
+    },
+    {
+      "name": "P숙주나물",
+      "unit_price": "1000",
+      "quantity": "2",
+      "total": "2000"
+    },
+    {
+      "name": "P표고버섯 (강현구) 로럴무드",
+      "unit_price": "3000",
+      "quantity": "1",
+      "total": "3000"
+    },
+    {
+      "name": "P맛리버섯",
+      "unit_price": "1200",
+      "quantity": "1",
+      "total": "1200"
+    }
+  ]
+}

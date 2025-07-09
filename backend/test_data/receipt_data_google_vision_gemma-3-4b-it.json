@@ -1,0 +1,76 @@
+{
+  "store_name": "탄동농협 & 마트",
+  "address": "대전 유성구 반석동 반석로100(반석동)",
+  "business_number": "318-82-00362",
+  "phone": "042-823-1760",
+  "date": "2024-08-17 11:31:45",
+  "total_price": 48360,
+  "items": [
+    {
+      "name": "P호박잎 (이공의) 로컬푸드",
+      "unit_price": "2100048420889",
+      "quantity": "3",
+      "total": "6000"
+    },
+    {
+      "name": "P꽈리고추 (편근범) 로컬푸드",
+      "unit_price": "2100048345571",
+      "quantity": "1",
+      "total": "2000"
+    },
+    {
+      "name": "P청양고추",
+      "unit_price": "232046",
+      "quantity": "1",
+      "total": "1900"
+    },
+    {
+      "name": "P앞다리살",
+      "unit_price": "233212",
+      "quantity": "1",
+      "total": "8560"
+    },
+    {
+      "name": "P올바른 싱싱독란 30입",
+      "unit_price": "8804841000067",
+      "quantity": "2",
+      "total": "13800"
+    },
+    {
+      "name": "P근대 (정성훈) 로컬푸드",
+      "unit_price": "2100051688634",
+      "quantity": "2",
+      "total": "4000"
+    },
+    {
+      "name": "P애호박(구재숙) 로컬푸드",
+      "unit_price": "2100049661090",
+      "quantity": "1",
+      "total": "1000"
+    },
+    {
+      "name": "P삶은고사리",
+      "unit_price": "232699",
+      "quantity": "1",
+      "total": "4900"
+    },
+    {
+      "name": "P 숙주나물",
+      "unit_price": "231424",
+      "quantity": "2",
+      "total": "2000"
+    },
+    {
+      "name": "P표고버섯(강현구) 로컬푸드",
+      "unit_price": "2100051616460",
+      "quantity": "1",
+      "total": "3000"
+    },
+    {
+      "name": "P맛타리버섯",
+      "unit_price": "287240",
+      "quantity": "1",
+      "total": "1200"
+    }
+  ]
+}
