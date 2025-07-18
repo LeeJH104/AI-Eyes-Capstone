@@ -7,7 +7,6 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Locale;
@@ -23,13 +22,13 @@ xml
 /**
  * STTManager
  * 음성 인식을 쉽게 사용할 수 있도록 감싸주는 유틸 클래스
- * 내부적으로 SpeechRecognizer + RecognizerIntent를 사용함
+ * 음성 인식 시작/재시작/정지 및 결과 콜백 제공
  */
 public class STTManager {
 
-    private final Activity activity; // STT를 사용할 Activity context
-    private SpeechRecognizer speechRecognizer; // 실제 음성 인식을 담당하는 객체
-    private Intent sttIntent; // 음성 인식 동작을 정의하는 인텐트
+    private final Activity activity;            // STT를 사용할 Activity context
+    private SpeechRecognizer speechRecognizer;  // 실제 음성 인식을 담당하는 객체
+    private Intent sttIntent;                   // 음성 인식 동작을 위한 인텐트
     private OnSTTResultListener resultListener; // 외부에서 인식 결과를 받을 리스너
 
     /**
@@ -37,6 +36,18 @@ public class STTManager {
      */
     public STTManager(Activity activity) {
         this.activity = activity;
+        initialize(); // 초기 구성
+    }
+
+    /**
+     * 초기화 메서드 (restart 등에서 재사용 가능)
+     * - SpeechRecognizer 객체와 Listener, Intent 설정
+     */
+    private void initialize() {
+        // 기존 SpeechRecognizer가 존재하면 제거
+        if (speechRecognizer != null) {
+            speechRecognizer.destroy();
+        }
 
         // 1. SpeechRecognizer 생성
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(activity);
@@ -86,10 +97,10 @@ public class STTManager {
                         break;
                     // 기타 에러 처리 추가 가능
                     default:
-                        errorMsg = "음성 인식 오류 발생: " + error;
+                        errorMsg = "알 수 없는 오류 발생: " + error;
                 }
                 Log.e("STT", errorMsg);
-                Toast.makeText(activity, errorMsg, Toast.LENGTH_SHORT).show();
+//                Toast.makeText(activity, errorMsg, Toast.LENGTH_SHORT).show();
 
                 if (resultListener != null) {
                     resultListener.onSTTError(error); // 외부에 오류 코드 전달
@@ -98,7 +109,7 @@ public class STTManager {
 
             @Override
             public void onResults(Bundle results) {
-                // 최종 결과 수신
+                // 최종 인식 결과 수신
                 ArrayList<String> matches = results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
 
                 if (matches != null && !matches.isEmpty()) {
@@ -151,6 +162,16 @@ public class STTManager {
             Log.d("STT", "음성 인식 중단");
             speechRecognizer.stopListening();
         }
+    }
+
+    /**
+     * 음성 인식을 다시 시작하는 메서드
+     */
+    public void restartListening() {
+        Log.d("STT", "음성 인식 재시작");
+        destroy();      // 기존 리소스 제거
+        initialize();   // 재초기화
+        startListening();   // 새로 시작
     }
 
     /**
