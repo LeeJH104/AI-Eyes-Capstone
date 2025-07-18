@@ -2,10 +2,12 @@ package com.example.aieyes.utils;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.provider.Settings;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -84,6 +86,7 @@ public class PermissionHelper {
         }
 
         if (allGranted) {
+            Log.d("PermissionHelper", "✅ 모든 권한 승인됨 → onPermissionGranted() 호출됨");
             // 모든 권한이 승인됨
             listener.onPermissionGranted();
         } else {
@@ -116,6 +119,18 @@ public class PermissionHelper {
                         .show();
             }
         }
+    }
+
+    /**
+     * 권한이 이미 다 허용됐는지 확인
+     */
+    public static boolean arePermissionsGranted(Context context) {
+        for (String permission : REQUIRED_PERMISSIONS) {
+            if (ContextCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                return false;
+            }
+        }
+        return true;
     }
 }
 
