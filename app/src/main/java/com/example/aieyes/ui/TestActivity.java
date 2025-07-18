@@ -145,8 +145,8 @@ public class TestActivity extends AppCompatActivity {
         // 제스처 리스너 연결 (화면 전체에 적용)
         // 노란 밑줄은 주의사항 또는 권장사항을 의미. 잘 작동하면 무시해도 됨
         // 더 간단하게 findViewById(...).setOnTouchListener로 해도 되지만 아래 방법이 코드 재사용 쉬움, 디버깅 쉬움
-        LinearLayout rootLayout = findViewById(R.id.rootLayout);
-        rootLayout.setOnTouchListener(GestureManager.createGestureListener(this, new GestureManager.OnGestureListener() {
+        LinearLayout testLayout = findViewById(R.id.testLayout);
+        testLayout.setOnTouchListener(GestureManager.createGestureListener(this, new GestureManager.OnGestureListener() {
             @Override
             public void onSwipeLeft() {
                 Log.d("GestureTest", "왼쪽 스와이프");
