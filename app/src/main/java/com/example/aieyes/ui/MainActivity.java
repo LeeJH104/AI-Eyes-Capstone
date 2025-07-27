@@ -111,6 +111,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSwipeLeft() {
                 Log.d("Gesture", "왼쪽 스와이프 감지됨");
+                if (isSelected) return; // 이미 기능 선택됨 → 무시
+
+                isSelected = true;
                 // 👈 왼쪽 스와이프: 영수증
                 ttsManager.speak("영수증 기능을 선택하셨습니다.", () -> {
                     VibrationHelper.vibrateLong(MainActivity.this);
@@ -121,6 +124,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSwipeRight() {
                 Log.d("Gesture", "오른쪽 스와이프 감지됨");
+                if (isSelected) return; // 이미 기능 선택됨 → 무시
+
+                isSelected = true;
                 // 👉 오른쪽 스와이프: 네비게이션
                 ttsManager.speak("네비게이션 기능을 선택하셨습니다.", () -> {
                     VibrationHelper.vibrateLong(MainActivity.this);
