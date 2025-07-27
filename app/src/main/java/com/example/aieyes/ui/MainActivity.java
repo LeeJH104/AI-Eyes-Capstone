@@ -59,8 +59,7 @@ public class MainActivity extends AppCompatActivity {
 
                 @Override
                 public void onSTTError(int errorCode) {
-                    Log.e("STT", "STT 인식 실패 또는 오류: 코드 " + errorCode);
-                    ttsManager.speak("명령을 인식하지 못했습니다. 다시 말씀해주세요.", () -> sttManager.restartListening());
+                    sttManager.restartListening(); // 아무 입력이 없을 때 실행
                 }
             });
 
