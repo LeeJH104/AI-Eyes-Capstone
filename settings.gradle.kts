@@ -7,6 +7,11 @@ pluginManagement {
                 includeGroupByRegex("androidx.*")
             }
         }
+
+
+
+
+
         mavenCentral()
         gradlePluginPortal()
     }
@@ -19,5 +24,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "AI Eyes"
+rootProject.name = "Capstone_Map"
 include(":app")
