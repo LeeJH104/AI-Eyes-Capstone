@@ -12,7 +12,7 @@ public class TMapInitializer {
 
     public static TMapView setupTMapView(Context context, LinearLayout containerLayout) {
         TMapView tMapView = new TMapView(context);
-        tMapView.setSKTMapApiKey("발급받은_키");
+        tMapView.setSKTMapApiKey("MUUgFleM6h4uFPz6yYOW03Gbzskx5Gci1rdtifFf");
 
         tMapView.setCenterPoint(127.0, 37.0);
         tMapView.setZoomLevel(15);

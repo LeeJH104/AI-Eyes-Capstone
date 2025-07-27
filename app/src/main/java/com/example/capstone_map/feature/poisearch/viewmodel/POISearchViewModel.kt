@@ -6,15 +6,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.MutableLiveData
 import com.example.capstone_map.feature.poisearch.state.POISearchState
 import com.example.capstone_map.feature.poisearch.state.Searching
-import com.example.capstone_map.common.location.LocationFetcher
-import com.example.capstone_map.common.poi.Poi
+import com.example.capstone_map.common.location.oncefetcher.LocationFetcher
 import com.example.capstone_map.common.poi.PoiSearchCallback
 import com.example.capstone_map.common.poi.PoiSearchManager
 import com.example.capstone_map.common.poi.TmapSearchPoiResponse
 import com.example.capstone_map.common.viewmodel.NavigationStateViewModel
 import com.example.capstone_map.common.voice.STTManager
 import com.example.capstone_map.common.voice.TTSManager
+import com.example.capstone_map.feature.navigation.state.StartNavigationPreparation
+import com.example.capstone_map.feature.navigation.viewmodel.NavigationViewModel
 import com.example.capstone_map.feature.poisearch.state.ListingCandidates
+import com.example.capstone_map.feature.poisearch.state.LocationError
 import com.example.capstone_map.feature.poisearch.state.Parsing
 import com.example.capstone_map.feature.poisearch.state.ParsingCompleted
 import com.example.capstone_map.feature.poisearch.state.SearchCompleted
@@ -22,9 +24,8 @@ import com.google.gson.Gson
 
 class POISearchViewModel(
     private val stateViewModel: NavigationStateViewModel,
+    private val navigationViewModel: NavigationViewModel,
     private val locationFetcher: LocationFetcher,
-
-
     private val ttsManager: TTSManager,
     private val sttManager: STTManager
 
@@ -54,7 +55,7 @@ class POISearchViewModel(
 
             } else {
                 // 위치를 가져올 수 없을 때 처리
-                TODO("다시 DestinationViewModel로 이동해야함")
+                updateState(LocationError)
                 // 예: 사용자에게 알림 표시, 기본 위치 설정 등
             }
         }
@@ -147,14 +148,16 @@ class POISearchViewModel(
             ?.newAddress
             ?.firstOrNull()
             ?.fullAddressRoad ?: "주소 정보 없음"
+        val distance = poi.radius
 
-        speak("${index + 1}번 후보지는 $name, 주소는 $address 입니다.")
+        speak("${index + 1}번 후보지는 $name 주소는 $address 거리는$distance")
     }
 
     // 6-2 primary 행동 다음후보지 선택
     fun nextPoiIndex() {
         val currentindex = stateViewModel.currentPoiIndex.value ?: 0
         //즉, 초기값이 없을 때도 앱이 멈추지 않고 0부터 시작하도록 만든 것.
+        // index 에러 날듯
         stateViewModel.currentPoiIndex.postValue(currentindex + 1)
     }
 
@@ -167,7 +170,9 @@ class POISearchViewModel(
         val currentPOI = poiList[currentPoiIndex]
         stateViewModel.decidedDestinationPOI.postValue(currentPOI)
         // 상태 전이 다음 보행경로 길안내 viewmodel, state로 넘어가야함
-        // stateViewModel.updateState(Navigating)
+        navigationViewModel.updateState(StartNavigationPreparation)
+
+
     }
 
 

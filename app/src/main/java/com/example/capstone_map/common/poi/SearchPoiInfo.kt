@@ -23,7 +23,9 @@ data class Poi(
     val pnsLat: String,
     val pnsLon: String, //출입구 좌표
     val name: String,
-    val telNo: String
+    val telNo: String? = null,
+    val radius: Double? = null // ← ✅ radius 추가 (단위: 미터 등, nullable)
+
 )
 
 data class NewAddressList(

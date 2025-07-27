@@ -62,14 +62,6 @@ object ParsingCompleted : POISearchState     {
 
 }
 
-data class Poi(
-    val id: String,
-    val newAddressList: NewAddressList?, // ← 있을 수도 없을 수도 있음
-    val pnsLat: String,
-    val pnsLon: String, //출입구 좌표
-    val name: String,
-    val telNo: String
-)
 
 // 5. 후보지 나열 상태 (후보지들 중 하나씩 보여주거나 안내)
 object ListingCandidates : POISearchState {
@@ -105,7 +97,25 @@ object ListingCandidates : POISearchState {
  **/
 
 // 위치를 받아오는 데 실패함
-object LocationError : POISearchState   // 위치 가져오기 실패
+object LocationError : POISearchState{ // 위치 가져오기 실패
+    override fun handle(viewModel: POISearchViewModel) {
+        viewModel.speak("위치 재시도는 1번 gesture " +
+                " ")
+    }
+
+    override fun onPrimaryInput(viewModel: POISearchViewModel) {
+        viewModel.fetchCurrentLocation() //재시도
+
+    }
+
+    override fun onSecondaryInput(viewModel: POISearchViewModel) {
+        super.onSecondaryInput(viewModel) //구현해야함
+    }
+
+    override fun onTertiaryInput(viewModel: POISearchViewModel) {
+        super.onTertiaryInput(viewModel) //구현해야한다.
+    }
+}
 
 // 장소 검색 자체 실패 (API 오류 등)
 object SearchFailed : POISearchState    // 장소 검색 실패

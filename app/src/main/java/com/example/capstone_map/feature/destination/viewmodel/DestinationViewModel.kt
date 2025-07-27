@@ -6,7 +6,7 @@ import com.example.capstone_map.feature.destination.state.AwaitingDestinationInp
 import com.example.capstone_map.feature.destination.state.DestinationRight
 import com.example.capstone_map.feature.destination.state.DestinationWrong
 import com.example.capstone_map.feature.destination.state.ListeningForDestination
-import com.example.capstone_map.feature.destination.state.NavigationState
+import com.example.capstone_map.feature.destination.state.DestinationState
 import com.example.capstone_map.feature.destination.state.SearchingDestination
 import com.example.capstone_map.feature.poisearch.state.POISearchState
 import com.example.capstone_map.feature.poisearch.state.StartingSearch
@@ -25,7 +25,7 @@ class DestinationViewModel(
 ) : ViewModel() {
 
 
-    fun updateState(state: NavigationState) {
+    fun updateState(state: DestinationState) {
         stateViewModel.navState.value = state
         state.handle(this)
     }

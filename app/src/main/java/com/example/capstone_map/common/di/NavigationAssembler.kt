@@ -11,10 +11,12 @@ import com.example.capstone_map.feature.destination.viewmodel.DestinationViewMod
 import com.example.capstone_map.feature.destination.viewmodel.factory.DestinationViewModelFactory
 import com.example.capstone_map.feature.poisearch.viewmodel.POISearchViewModel
 import com.example.capstone_map.feature.poisearch.viewmodel.factory.POISearchViewModelFactory
-import com.example.capstone_map.common.location.LocationFetcher
+import com.example.capstone_map.common.location.oncefetcher.LocationFetcher
 import com.example.capstone_map.common.viewmodel.NavigationStateViewModel
 import com.example.capstone_map.common.voice.STTManager
 import com.example.capstone_map.common.voice.TTSManager
+import com.example.capstone_map.feature.navigation.viewmodel.NavigationViewModel
+import com.example.capstone_map.feature.navigation.viewmodel.factory.NavigationViewModelFactory
 import com.google.android.gms.location.LocationServices
 import kotlin.reflect.KClass
 
@@ -55,7 +57,8 @@ class NavigationAssembler(
     // ViewModel 팩토리 모음 (확장 쉽게)
     private val factoryMap: Map<KClass<out ViewModel>, ViewModelProvider.Factory> = mapOf(
 
-        POISearchViewModel::class to POISearchViewModelFactory(stateViewModel, _locationFetcher,ttsManager,sttManager),
+        POISearchViewModel::class to POISearchViewModelFactory(stateViewModel,
+            getViewModel(NavigationViewModel::class), _locationFetcher,ttsManager,sttManager),
 
         // 그 다음 DestinationViewModel에 주입
         DestinationViewModel::class to DestinationViewModelFactory(
@@ -63,7 +66,17 @@ class NavigationAssembler(
             getViewModel(POISearchViewModel::class),
             ttsManager,
             sttManager
-        )
+        ),
+
+        NavigationViewModel::class to NavigationViewModelFactory(
+            context = activity, // ✅ 여기 추가
+            stateViewModel = stateViewModel,
+            ttsManager = ttsManager,
+            sttManager = sttManager
+        ),
+
+
+
 
 
 
@@ -91,12 +104,14 @@ class NavigationAssembler(
     }
 
 
+
+
 //    val confirmationViewModel: ConfirmationViewModel by lazy {
 //        getViewModel(ConfirmationViewModel::class)
 //    }
-    
-    
-    
+
+
+
 }
 
 
