@@ -1,0 +1,5 @@
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate
+
+D:/GaramsRealWork/capstone/.venv/Scripts/python.exe d:/GaramsRealWork/capstone/backend/receipt_app.py
+D:/GaramsRealWork/capstone/.venv/Scripts/python.exe d:/GaramsRealWork/capstone/backend/test_client.py

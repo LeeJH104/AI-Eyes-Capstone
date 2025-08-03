@@ -17,15 +17,40 @@
         android:textColor="#333333"
         android:layout_marginBottom="30dp" />
 
+
     <TextView
         android:id="@+id/instructionTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
         android:gravity="center"
-        android:text="음성 안내에 따라 영수증을 촬영해주세요"
-        android:textSize="18sp"
+        android:text="아래 버튼을 선택하세요."
         android:textColor="#666666"
-        android:layout_marginBottom="40dp" />
+        android:textSize="18sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="24dp">
+
+        <Button
+            android:id="@+id/btnCamera"
+            android:layout_width="0dp"
+            android:layout_height="100dp"
+            android:layout_weight="1"
+            android:text="영수증 촬영" />
+        <Space
+            android:layout_width="16dp"
+            android:layout_height="wrap_content" />
+        <Button
+            android:id="@+id/btnTest"
+            android:layout_width="0dp"
+            android:layout_height="100dp"
+            android:layout_weight="1"
+            android:text="테스트 영수증 분석" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/resultTextView"
@@ -40,5 +65,28 @@
         android:background="#ffffff"
         android:padding="20dp"
         android:visibility="gone" />
+
+    <ImageView
+        android:id="@+id/receiptImageView"
+        android:layout_width="250dp"
+        android:layout_height="250dp"
+        android:layout_gravity="center"
+        android:scaleType="centerCrop"
+        android:src="@drawable/receipt_test"
+        android:visibility="gone"
+        android:layout_marginBottom="20dp" />
+
+    <TextView
+        android:id="@+id/totalTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text=""
+        android:textSize="24sp"
+        android:textColor="#333333"
+        android:visibility="gone"
+        android:background="#e3f2fd"
+        android:padding="12dp"
+        android:layout_marginTop="10dp" />
 
 </LinearLayout>
