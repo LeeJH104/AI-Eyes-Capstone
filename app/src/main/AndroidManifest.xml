@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+<<<<<<< HEAD
     <!-- 문제 해결: 인터넷 사용 권한 추가 -->
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -14,6 +15,21 @@
         application 태그에 usesCleartextTraffic="true" 추가
         (암호화되지 않은 HTTP 통신 허용)
     -->
+=======
+    <!-- Permission -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- 카메라 기능은 선택 사항임을 명시 -->
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
+>>>>>>> origin/main
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -23,16 +39,27 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AIEyes"
+<<<<<<< HEAD
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
             android:name=".ui.ReceiptActivity"
             android:exported="false" />
+=======
+        tools:targetApi="31">
+
+        <activity android:name=".ui.ReceiptActivity" />
+        <activity android:name=".ui.NavigationActivity" />
+>>>>>>> origin/main
         <activity
             android:name=".ui.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/main
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # .gitignore 파일 내용
 
 # Hugging Face 캐시 폴더
@@ -18,3 +19,20 @@ __pycache__/
 garakey.env
 chinamoney-42dd61d0050f.json 
 # 기타 사용자가 추가한 민감 파일이나 빌드 결과물 등
+=======
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+>>>>>>> origin/main
