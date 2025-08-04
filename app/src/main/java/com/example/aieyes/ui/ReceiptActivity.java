@@ -1,6 +1,5 @@
 package com.example.aieyes.ui;
 
-<<<<<<< HEAD
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -52,20 +51,10 @@ public class ReceiptActivity extends AppCompatActivity {
     // OkHttpClient를 멤버 변수로 선언
     private OkHttpClient httpClient;
 
-=======
-import android.os.Bundle;
-
-import androidx.appcompat.app.AppCompatActivity;
-
-import com.example.aieyes.R;
-
-public class ReceiptActivity extends AppCompatActivity {
->>>>>>> origin/main
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.receipt_activity);
-<<<<<<< HEAD
 
         initializeUI();
         initializeManagers();
@@ -270,7 +259,3 @@ public class ReceiptActivity extends AppCompatActivity {
         }
     }
 }
-=======
-    }
-}
->>>>>>> origin/main

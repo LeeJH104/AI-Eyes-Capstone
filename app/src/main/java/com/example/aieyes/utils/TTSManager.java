@@ -1,25 +1,8 @@
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/main
 package com.example.aieyes.utils;
 
 import android.content.Context;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
-<<<<<<< HEAD
-import java.util.Locale;
-
-public class TTSManager {
-    private TextToSpeech tts;
-    private Runnable onReadyListener;
-
-    public TTSManager(Context context) {
-        tts = new TextToSpeech(context, status -> {
-            if (status == TextToSpeech.SUCCESS) {
-                tts.setLanguage(Locale.KOREAN);
-                if (onReadyListener != null) onReadyListener.run();
-=======
 import android.util.Log;
 
 import java.util.Locale;
@@ -28,8 +11,8 @@ import java.util.UUID;
 /**
  * TTSManager는 TextToSpeech 기능을 담당하는 클래스입니다.
  * 텍스트를 음성으로 읽어주는 기능 제공
- *  * - 초기화 완료 여부 확인
- *  * - 음성 안내 종료 후 후속 동작(Runnable) 실행 가능
+ *  - 초기화 완료 여부 확인
+ *  - 음성 안내 종료 후 후속 동작(Runnable) 실행 가능
  */
 public class TTSManager {
     private TextToSpeech tts;   // 안드로이드의 TTS 객체
@@ -67,37 +50,10 @@ public class TTSManager {
                 }
             } else {
                 Log.e("TTSManager", "TTS 초기화 실패");
->>>>>>> origin/main
             }
         });
     }
 
-<<<<<<< HEAD
-    public void setOnTTSReadyListener(Runnable listener) {
-        this.onReadyListener = listener;
-    }
-
-    public void speak(String text) {
-        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "tts_id");
-    }
-
-    public void speak(String text, Runnable onDone) {
-        tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "tts_id");
-        tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-            @Override
-            public void onStart(String utteranceId) {}
-            @Override
-            public void onDone(String utteranceId) { onDone.run(); }
-            @Override
-            public void onError(String utteranceId) {}
-        });
-    }
-
-    public void shutdown() {
-        tts.shutdown();
-    }
-}
-=======
     /**
      * 초기화 완료 콜백 등록 함수
      * 이미 초기화되어 있으면 바로 실행
@@ -128,8 +84,8 @@ public class TTSManager {
      * 텍스트를 읽은 후 특정 작업(Runnable)을 수행하는 함수
      * - 음성이 끝난 후에 자동으로 콜백이 실행됨
      *
-     * @param text    읽을 텍스트
-     * @param onDone  음성 출력이 완료되었을 때 실행할 코드 (예: STT 시작, 화면 전환 등)
+     * @param text   읽을 텍스트
+     * @param onDone 음성 출력이 완료되었을 때 실행할 코드 (예: STT 시작, 화면 전환 등)
      */
     public void speak(String text, Runnable onDone) {
         if (!isInitialized) {
@@ -172,45 +128,8 @@ public class TTSManager {
      */
     public void shutdown() {
         if (tts != null) {
-            tts.stop();         // 현재 읽고 있는 음성 중지
-            tts.shutdown();     // TTS 엔진 종료
+            tts.stop();       // 현재 읽고 있는 음성 중지
+            tts.shutdown();   // TTS 엔진 종료
         }
     }
 }
-
-/*
-TTSManager 사용 예시:
-
-// 예: MainActivity.java
-import com.example.aieyes.utils.TTSManager;
-
-public class MainActivity extends AppCompatActivity {
-
-    private TTSManager ttsManager;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.activity_main);
-
-        // 1. TTSManager 초기화 (반드시 Context를 넘겨야 함)
-        ttsManager = new TTSManager(this);
-
-        // 2. 버튼 클릭 시 음성 출력
-        Button speakBtn = findViewById(R.id.speak_button);
-        speakBtn.setOnClickListener(v -> {
-            ttsManager.speak("안녕하세요. 음성 안내를 시작합니다.");
-        });
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-
-        // 3. Activity 종료 시 반드시 shutdown 호출 (메모리 누수 방지)
-        ttsManager.shutdown();
-    }
-}
-*/
->>>>>>> origin/main

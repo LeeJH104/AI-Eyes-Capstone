@@ -1,9 +1,5 @@
 [versions]
-<<<<<<< HEAD
-agp = "8.10.1"
-=======
-agp = "8.10.0"
->>>>>>> origin/main
+agp = "8.10.1"   # 또는 "8.10.0" 둘 중 하나만 선택
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
@@ -23,4 +19,4 @@ constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayo
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
-
+android-library = { id = "com.android.library", version.ref = "agp" }

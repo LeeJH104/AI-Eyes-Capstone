@@ -1,20 +1,6 @@
 package com.example.aieyes.utils;
 
 import android.content.Context;
-<<<<<<< HEAD
-import android.os.Vibrator;
-
-public class VibrationHelper {
-    public static void vibrateShort(Context context) {
-        Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-        if (v != null) v.vibrate(100);
-    }
-    public static void vibrateLong(Context context) {
-        Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-        if (v != null) v.vibrate(500);
-    }
-}
-=======
 import android.os.Build;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
@@ -92,4 +78,3 @@ VibrationHelper.vibrateShort(getApplicationContext());
 // 오류 상황에 긴 진동
 VibrationHelper.vibrateLong(this);  // Activity라면 this
 */
->>>>>>> origin/main

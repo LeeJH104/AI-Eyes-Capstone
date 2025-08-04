@@ -1,9 +1,5 @@
 package com.example.aieyes.utils;
 
-<<<<<<< HEAD
-public class STTManager {
-}
-=======
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -252,4 +248,3 @@ public class MainActivity extends AppCompatActivity {
     }
 }
 */
->>>>>>> origin/main
