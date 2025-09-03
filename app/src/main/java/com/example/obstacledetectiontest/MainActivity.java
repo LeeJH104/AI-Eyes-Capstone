@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
         // 📡 Retrofit 객체 생성
         HttpLoggingInterceptor logger = new HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY);
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("http://192.168.0.36:5000/") // 서버 주소
+                .baseUrl("http://192.168.0.36:5000/") // 임의 flask 서버 주소
                 .client(new OkHttpClient.Builder().addInterceptor(logger).build())
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
