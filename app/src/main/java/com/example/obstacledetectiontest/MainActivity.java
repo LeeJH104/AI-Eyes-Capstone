@@ -160,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
                             txtResult.setText(result);
                             Toast.makeText(MainActivity.this, "AI 분석 완료", Toast.LENGTH_SHORT).show();
 
-                            Log.d("TTS_DEBUG", "TTS 내용: " + result);  // 로그 추가
+                            Log.d("TTS_DEBUG", "TTS 내용: " + result);
                             tts.speak(result, TextToSpeech.QUEUE_FLUSH, null, null);
                         } else {
                             txtResult.setText("서버 응답 실패");
@@ -172,7 +172,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onFailure(Call<JsonObject> call, Throwable t) {
                         txtResult.setText("네트워크 오류");
-                        Log.e("RetrofitError", "통신 실패", t);  // <-- 이 줄 추가!
+                        Log.e("RetrofitError", "통신 실패", t);
                         t.printStackTrace();
                     }
 
