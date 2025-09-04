@@ -86,8 +86,9 @@ class NavigationActivity : AppCompatActivity() {
 
         NavigationInputBinder(
             activity = this,
-            desViewModel = destinationViewModel,
+            desViewModel = assembler.destinationViewModel,
             poiViewModel = assembler.poiSearchViewModel,
+            navViewModel = assembler.navigationViewModel,
             stateProvider = { assembler.stateViewModel.navState.value },
             primary = binding.gesture1,
             secondary = binding.gesture2,

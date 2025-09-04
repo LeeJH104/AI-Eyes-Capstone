@@ -2,8 +2,6 @@ package com.example.capstone_map.common.di
 
 
 import android.app.Activity
-
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
@@ -20,28 +18,31 @@ import com.example.capstone_map.feature.navigation.viewmodel.factory.NavigationV
 import com.google.android.gms.location.LocationServices
 import kotlin.reflect.KClass
 
-//
-
-
 class NavigationAssembler(
     private val activity: Activity,
     private val owner: ViewModelStoreOwner
 ) {
 
+
+
+    //shanredViewmodel 모든 viewmodel이 공유하는 데이터 저장소
     val stateViewModel: SharedNavigationViewModel by lazy {
         ViewModelProvider(owner)[SharedNavigationViewModel::class.java]
     }
 
+    //필요한 인스턴스 생성
     private val _ttsManager by lazy { TTSManager(activity) }
     private val _sttManager by lazy { STTManager(activity) }
+
     private val _locationFetcher by lazy {
         LocationFetcher(activity, LocationServices.getFusedLocationProviderClient(activity))
     }
-
     val ttsManager get() = _ttsManager
     val sttManager get() = _sttManager
 
-    // ★ 뷰모델 "제공자" 맵: 호출 시점에 생성
+
+
+    //  뷰모델 "제공자" 맵: 호출 시점에 생성
     private val providers: Map<KClass<out ViewModel>, () -> ViewModel> = mapOf(
 
         NavigationViewModel::class to {
@@ -91,6 +92,12 @@ class NavigationAssembler(
         return provider.invoke() as T
     }
 
+
+    //by lazy = “정말 필요할 때 처음으로 만들고, 그 다음부터는 이미 만든 걸 계속 써라”
     val destinationViewModel by lazy { getViewModel(DestinationViewModel::class) }
     val poiSearchViewModel  by lazy { getViewModel(POISearchViewModel::class) }
+
+    val navigationViewModel by lazy { getViewModel(NavigationViewModel::class) }
+
+
 }
