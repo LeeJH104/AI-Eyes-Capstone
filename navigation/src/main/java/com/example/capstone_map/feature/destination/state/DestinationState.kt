@@ -6,13 +6,11 @@ import com.example.capstone_map.common.state.BaseState
 sealed interface DestinationState : BaseState<DestinationViewModel>
 
 
-
 // 1단계: 목적지 요청
 object AwaitingDestinationInput : DestinationState {
     override fun handle(viewModel: DestinationViewModel) {
         viewModel.speak("버튼을 눌러 목적지를 말씀해주세요")
         // 버튼 누를 때까지 대기
-
     }
 
     override fun onPrimaryInput(viewModel: DestinationViewModel) {

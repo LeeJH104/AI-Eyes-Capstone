@@ -15,8 +15,6 @@
         //val = 개념 핵심: val은 참조(주소)를 바꿀 수 없다는 뜻
         val geoJsonData = MutableLiveData<String>() //
         val currentLocation = MutableLiveData<Location>()  // 현재위치를 저장하는 변수
-
-
         val navState = MutableLiveData<BaseState<*>>() // 혹은 BaseState<out ViewModel>
         val destinationText = MutableLiveData<String>()
         // POI 후보 리스트
