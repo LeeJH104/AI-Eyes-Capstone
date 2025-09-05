@@ -1,5 +1,8 @@
+영수증용 서버 열기
+터미널 1
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 .\.venv\Scripts\Activate
 
 D:/GaramsRealWork/capstone/.venv/Scripts/python.exe d:/GaramsRealWork/capstone/backend/receipt_app.py
+터미널 2
 D:/GaramsRealWork/capstone/.venv/Scripts/python.exe d:/GaramsRealWork/capstone/backend/test_client.py
