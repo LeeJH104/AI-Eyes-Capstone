@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.LinearLayout;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
+
 
 import com.example.aieyes.R;
 import com.example.aieyes.utils.GestureManager;
@@ -13,6 +13,7 @@ import com.example.aieyes.utils.PermissionHelper;
 import com.example.aieyes.utils.STTManager;
 import com.example.aieyes.utils.TTSManager;
 import com.example.aieyes.utils.VibrationHelper;
+import com.example.capstone_map.feature.NavigationActivity;
 
 /**
  * MainActivity
@@ -32,8 +33,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main); // 좌우 화면 구성 포함한 XML 사용
-
+        // ✅ [수정] MainActivity는 자신의 레이아웃 파일(activity_main)을 사용해야 합니다.
+        setContentView(R.layout.activity_main);
         // 권한 헬퍼 초기화 및 권한 요청 처리
         permissionHelper = new PermissionHelper(this, this::initializeMainFeatures);
         // 실제 권한 확인 및 사용자에게 요청
@@ -87,9 +88,11 @@ public class MainActivity extends AppCompatActivity {
             // 🎤 네비게이션 선택 시 TTS 안내 후 화면 이동
             ttsManager.speak("내비게이션 기능을 선택하셨습니다.", () -> {
                 VibrationHelper.vibrateLong(this); // 긴 진동 피드백
-                ttsManager.speak("네비게이션 기능은 현재 미구현입니다.", () -> {
-                    isSelected = false; // 기능 실행 후 다시 선택 가능하도록
-                });
+                VibrationHelper.vibrateLong(this);
+                startActivity(new Intent(MainActivity.this, NavigationActivity.class)); // ← 라이브러리 액티비티 실행
+//                ttsManager.speak("네비게이션 기능은 현재 미구현입니다.", () -> {
+//                    isSelected = false; // 기능 실행 후 다시 선택 가능하도록
+//                });
             });
         } else if (voice.contains("영수증")) {
             isSelected = true;
@@ -133,9 +136,14 @@ public class MainActivity extends AppCompatActivity {
                 // 👉 오른쪽 스와이프: 네비게이션
                 ttsManager.speak("네비게이션 기능을 선택하셨습니다.", () -> {
                     VibrationHelper.vibrateLong(MainActivity.this);
-                    ttsManager.speak("네비게이션 기능은 현재 미구현입니다.", () -> {
-                        isSelected = false; // 기능 실행 후 다시 선택 가능하도록
-                    });
+                    startActivity(new Intent(
+                            MainActivity.this,                // ← 여기!
+                            NavigationActivity.class          // ← FQCN 대신 import 사용
+                    ));
+
+//                    ttsManager.speak("네비게이션 기능은 현재 미구현입니다.", () -> {
+//                        isSelected = false; // 기능 실행 후 다시 선택 가능하도록
+//                    });
                 });
             }
 

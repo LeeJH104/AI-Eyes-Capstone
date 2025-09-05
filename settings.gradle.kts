@@ -21,3 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "AI Eyes"
 include(":app")
+include(":navigation")
+
