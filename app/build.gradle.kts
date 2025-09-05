@@ -46,7 +46,8 @@ dependencies {
     implementation("com.google.guava:guava:31.1-android")
     // HTTP 통신을 위한 OkHttp
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    
+    implementation(libs.camera.view)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

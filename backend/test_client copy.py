@@ -26,7 +26,7 @@ else:
     try:
         with open(IMAGE_PATH, 'rb') as f:
             files = {'image': (os.path.basename(IMAGE_PATH), f, 'image/jpeg')}
-            response = requests.post(SERVER_URL, files=files, timeout=120)
+            response = requests.post(SERVER_URL, files=files, timeout=600)
 
         print("--- 서버 응답 ---")
         print(f"상태 코드: {response.status_code}")
