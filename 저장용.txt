@@ -6,3 +6,20 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 D:/GaramsRealWork/capstone/.venv/Scripts/python.exe d:/GaramsRealWork/capstone/backend/receipt_app.py
 터미널 2
 D:/GaramsRealWork/capstone/.venv/Scripts/python.exe d:/GaramsRealWork/capstone/backend/test_client.py
+
+
+[versions]
+agp = "8.10.1"   # Android Studio 호환 버전
+junit = "4.13.2"
+junitVersion = "1.1.5"
+espressoCore = "3.5.1"
+appcompat = "1.6.1"
+material = "1.10.0"
+activity = "1.8.0"
+constraintlayout = "2.1.4"
+cameraView = "1.4.2"
+
+distributionUrl=https\://services.gradle.org/distributions/gradle-8.13-bin.zip
+
+안드로이드15
+픽셀 9 pro xl
