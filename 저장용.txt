@@ -7,6 +7,8 @@ D:/GaramsRealWork/capstone/.venv/Scripts/python.exe d:/GaramsRealWork/capstone/b
 터미널 2
 D:/GaramsRealWork/capstone/.venv/Scripts/python.exe d:/GaramsRealWork/capstone/backend/test_client.py
 
+/home/BoringStarG/mysite/flask_app.py
+
 
 [versions]
 agp = "8.10.1"   # Android Studio 호환 버전
