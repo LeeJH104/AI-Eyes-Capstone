@@ -10,7 +10,7 @@ import os
 
 # --- 설정 ---
 # 서버 주소와 포트를 확인하세요.
-SERVER_URL = "http://127.0.0.1:5000/api/process-receipt"
+SERVER_URL = "https://BoringStarG.pythonanywhere.com/api/receipt/process-receipt"
 
 # 테스트에 사용할 이미지 파일의 경로를 지정하세요.
 # 이 스크립트(test_client.py)는 backend 폴더에 있으므로,
