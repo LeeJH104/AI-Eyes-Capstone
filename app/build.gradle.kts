@@ -50,8 +50,10 @@ dependencies {
     // Networking
     // HTTP 통신을 위한 OkHttp
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-
     implementation("com.google.guava:guava:31.1-android")
+
+    implementation 'org.tensorflow:tensorflow-lite-task-vision:0.4.4'
+    implementation 'org.tensorflow:tensorflow-lite-support:0.4.4'
 
     // Testing
     testImplementation(libs.junit)
