@@ -98,7 +98,7 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
 
         objectDetectorHelper = new ObjectDetectorHelper(
                 this,
-                "ssd_mobilenet_v1_1_metadata_1.tflite", // assets 폴더의 모델 파일명과 일치해야 합니다.
+                "1.tflite",
                 0.5f,
                 2,
                 5,
