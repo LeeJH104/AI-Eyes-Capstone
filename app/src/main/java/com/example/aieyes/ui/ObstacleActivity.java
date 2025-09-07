@@ -1,7 +1,6 @@
 package com.example.aieyes.ui;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.hardware.camera2.CameraCharacteristics;
@@ -16,25 +15,22 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.annotation.OptIn;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.camera2.interop.Camera2CameraInfo;
-import androidx.camera.camera2.interop.ExperimentalCamera2Interop;
 import androidx.camera.core.CameraInfo;
 import androidx.camera.core.CameraSelector;
+import androidx.camera.core.CameraUnavailableException;
 import androidx.camera.core.ImageAnalysis;
+import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
+import com.example.aieyes.R; // R 클래스 import
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.JsonObject;
 
@@ -101,8 +97,12 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
         cameraExecutor = Executors.newSingleThreadExecutor();
 
         objectDetectorHelper = new ObjectDetectorHelper(
-                this, "1.tflite",
-                0.5f, 2, 5, this
+                this,
+                "ssd_mobilenet_v1_1_metadata_1.tflite", // assets 폴더의 모델 파일명과 일치해야 합니다.
+                0.5f,
+                2,
+                5,
+                this
         );
 
         btnToggleAnalysis.setOnClickListener(v -> toggleAnalysis());
@@ -133,7 +133,6 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
         }
     }
 
-    @OptIn(markerClass = ExperimentalCamera2Interop.class)
     private void startCamera() {
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(this);
         cameraProviderFuture.addListener(() -> {
@@ -142,7 +141,6 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
                 Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
-                // 사용 가능한 가장 넓은 화각의 카메라를 선택합니다.
                 CameraSelector cameraSelector = getWideAngleCameraSelector(cameraProvider);
                 if (cameraSelector == null) {
                     cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
@@ -175,14 +173,14 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
     }
 
     @androidx.camera.camera2.interop.ExperimentalCamera2Interop
-    @SuppressWarnings("deprecation") // CameraCharacteristics.get를 사용하기 위해 경고 무시
+    @SuppressWarnings("deprecation")
     private CameraSelector getWideAngleCameraSelector(ProcessCameraProvider cameraProvider) {
         CameraSelector wideAngleCameraSelector = null;
         float minFocalLength = Float.MAX_VALUE;
         try {
             for (CameraInfo cameraInfo : cameraProvider.getAvailableCameraInfos()) {
                 if (Camera2CameraInfo.from(cameraInfo).getCameraCharacteristic(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_BACK) {
-                    @SuppressLint("RestrictedApi") CameraCharacteristics characteristics = Camera2CameraInfo.extractCameraCharacteristics(cameraInfo);
+                    CameraCharacteristics characteristics = Camera2CameraInfo.extractCameraCharacteristics(cameraInfo);
                     float[] focalLengths = characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS);
                     if (focalLengths != null && focalLengths.length > 0) {
                         float currentMinFocalLength = focalLengths[0];
@@ -251,12 +249,17 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
                     String resultText = response.body().get("result").getAsString();
                     runOnUiThread(() -> txtResult.setText(resultText));
                     tts.speak(resultText, TextToSpeech.QUEUE_FLUSH, null, null);
+                } else {
+                    runOnUiThread(() -> txtResult.setText("서버 응답 실패: " + response.code()));
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<JsonObject> call, @NonNull Throwable t) {
-                runOnUiThread(() -> progressBar.setVisibility(View.GONE));
+                runOnUiThread(() -> {
+                    progressBar.setVisibility(View.GONE);
+                    txtResult.setText("네트워크 오류: " + t.getMessage());
+                });
                 Log.e("RetrofitError", "Cloud API 통신 실패", t);
             }
         });

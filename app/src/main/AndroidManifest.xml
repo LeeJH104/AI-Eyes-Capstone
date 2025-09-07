@@ -2,18 +2,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permission -->
-    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
-    <!-- 카메라 기능은 선택 사항임을 명시 -->
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -26,8 +25,6 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
-        <activity android:name=".ui.ReceiptActivity" android:exported="false" />
-        <activity android:name=".ui.NavigationActivity" />
         <activity
             android:name=".ui.MainActivity"
             android:exported="true">
@@ -36,6 +33,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".ui.ObstacleActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ReceiptActivity"
+            android:exported="false" />
+        <activity
+            android:name="com.example.capstone_map.feature.NavigationActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

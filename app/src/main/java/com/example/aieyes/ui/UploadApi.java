@@ -1,4 +1,4 @@
-package com.example.obstacledetectiontest;
+package com.example.aieyes.ui;
 
 import com.google.gson.JsonObject;
 import retrofit2.Call;
