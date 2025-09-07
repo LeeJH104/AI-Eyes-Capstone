@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from . import processor
+from . import obst_processor as processor
 
 obstacle_bp = Blueprint('obstacle_bp', __name__)
 

@@ -12,7 +12,7 @@ import torch
 import os
 os.environ.pop("TORCH_LOGS", None)
 os.environ["TORCHDYNAMO_DISABLE"] = "1"
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(os.path.dirname(__file__), "api", "chinamoney-42dd61d0050f.json")
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(os.path.dirname(__file__), "api", "chinamoney-fb6772e4457f.json")
 
 # 3. 나머지 필수 라이브러리 임포트
 import json
