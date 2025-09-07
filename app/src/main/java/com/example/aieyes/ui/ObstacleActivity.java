@@ -1,4 +1,4 @@
-package com.example.obstacledetectiontest;
+package com.example.aieyes.ui;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
