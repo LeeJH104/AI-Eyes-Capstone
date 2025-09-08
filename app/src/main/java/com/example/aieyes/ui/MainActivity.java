@@ -19,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
 
     private TTSManager ttsManager;
     private STTManager stTManager;
-    private final String introMessage = "기능을 선택해주세요. 오른쪽 스와이프는 네비게이션, 왼쪽 스와이프는 영수증, 아래쪽 스와이프는 장애물 탐지입니다. 또는 음성으로 말씀해주세요.";
+    private final String introMessage = "기능을 선택해주세요. 오른쪽 스와이프는 네비게이션, 왼쪽 스와이프는 영수증, 아래쪽 스와이프는 장애물 탐지입니다. 또는 음성으로 네비게이션, 영수증, 장애물 탐지라고 말씀해주세요.";
     private PermissionHelper permissionHelper; // 권한을 처리하는 헬퍼 클래스
     private boolean isInitialized = false; // 초기화 여부 플래그
     private boolean isSelected = false; // 중복 실행 방지 및 타이밍 충돌 방지
@@ -151,10 +151,18 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         isSelected = false; // 다시 돌아왔을 때만 초기화
 
-        if (!isInitialized && PermissionHelper.arePermissionsGranted(this)) {
-            initializeMainFeatures();
-        }
+        if (isInitialized) {
+        Log.d("MainActivity", "onResume: 화면으로 복귀하여 안내 메시지 다시 시작");
+        speakIntroAndListen();
     }
+    // ▲▲▲ [수정된 부분 끝] ▲▲▲
+
+    // 이 코드는 그대로 유지합니다.
+    // (혹시 권한을 늦게 허용했을 경우, 최초 초기화를 실행하기 위함)
+    if (!isInitialized && PermissionHelper.arePermissionsGranted(this)) {
+        initializeMainFeatures();
+    }
+}
 
     @Override
     protected void onDestroy() {
