@@ -149,10 +149,15 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        isSelected = false; // 다시 돌아왔을 때만 초기화
+        isSelected = false;
 
-        if (!isInitialized && PermissionHelper.arePermissionsGranted(this)) {
-            initializeMainFeatures();
+        // 이미 초기화가 완료된 상태에서만 (다른 화면에서 복귀 시) 안내를 다시 시작
+        if (isInitialized) {
+            speakIntroAndListen();
+        }
+        // 아직 초기화되지 않은 상태라면 (앱 최초 실행 시) 초기화 로직 실행
+        else if (PermissionHelper.arePermissionsGranted(this)) {
+            initializeMainFeatures(); // 여기서 TTS 준비 후 speakIntroAndListen()이 한 번만 호출됨
         }
     }
 
