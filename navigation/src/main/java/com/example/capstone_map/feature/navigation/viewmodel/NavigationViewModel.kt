@@ -359,9 +359,11 @@ class NavigationViewModel(
                 val description = feature.properties.description
                 if (!description.isNullOrBlank()) {
                     Log.i("NAVIGATION", "🗣️ 안내 시작: $description")
+                    lastSpokenIndex = index
+
                     speak(description) {
                         Log.i("NAVIGATION", "✅ 안내 완료: index $index")
-                        lastSpokenIndex = index
+                        //lastSpokenIndex = index
 
                         // 🟡 도착 지점인지 확인
                         if (index == lastPointIndex) {
