@@ -1,4 +1,4 @@
-package com.example.obstacledetectiontest;
+package com.example.aieyes.ui;
 
 import android.content.Context;
 import android.graphics.Bitmap;
