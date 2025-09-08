@@ -4,7 +4,7 @@
 """영수증 분석 API 라우트"""
 
 from flask import Blueprint, request, jsonify
-from . import processor
+from . import processor_gemma_ver as processor
 
 # 블루프린트 생성
 receipt_bp = Blueprint('receipt_bp', __name__)
