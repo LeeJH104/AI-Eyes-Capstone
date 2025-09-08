@@ -7,11 +7,14 @@ import android.util.Log;
 
 import com.skt.Tmap.TMapMarkerItem;
 import com.skt.Tmap.TMapPoint;
+import com.skt.Tmap.TMapPolyLine;
 import com.skt.Tmap.TMapView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -216,6 +219,60 @@ public class MapRouteDisplayer {
             }
         }
         return null;
+    }
+
+
+
+    public void displayFromPointFeatures(java.util.List<Feature> pointFeatures) {
+        clearRoute();
+        if (pointFeatures == null || pointFeatures.isEmpty()) return;
+
+        // pointIndex 오름차순 정렬
+        Collections.sort(pointFeatures, new Comparator<Feature>() {
+            @Override public int compare(Feature a, Feature b) {
+                Integer ia = a.getProperties().getPointIndex();
+                Integer ib = b.getProperties().getPointIndex();
+                if (ia == null) ia = Integer.MAX_VALUE;
+                if (ib == null) ib = Integer.MAX_VALUE;
+                return ia.compareTo(ib);
+            }
+        });
+
+        // 폴리라인 작성
+        TMapPolyLine poly = new TMapPolyLine();
+        poly.setLineColor(DEFAULT_ROUTE_COLOR);
+        poly.setLineWidth(DEFAULT_ROUTE_WIDTH);
+
+        TMapPoint startPt = null, endPt = null;
+
+        for (Feature f : pointFeatures) {
+            Coordinates coords = f.getGeometry().getCoordinates();
+            if (coords instanceof Coordinates.Point) {
+                Coordinates.Point p = (Coordinates.Point) coords;
+                TMapPoint tp = new TMapPoint(p.getLat(), p.getLon()); // (lat, lon)
+                poly.addLinePoint(tp);
+
+                String ptType = f.getProperties().getPointType();
+                if ("SP".equals(ptType)) startPt = tp;
+                if ("EP".equals(ptType)) endPt = tp;
+            }
+        }
+
+        tMapView.addTMapPolyLine(ROUTE_LINE_ID, poly);
+
+        // 출발/도착 마커
+        if (startPt != null && endPt != null) {
+            addStartEndMarkers(startPt.getLongitude(), startPt.getLatitude(), "출발",
+                    endPt.getLongitude(),   endPt.getLatitude(),   "도착");
+            adjustMapBounds(startPt.getLongitude(), startPt.getLatitude(),
+                    endPt.getLongitude(),   endPt.getLatitude());
+        } else {
+            // 시작점만 있으면 화면만 대충 맞추기
+            if (startPt != null) {
+                tMapView.setCenterPoint(startPt.getLongitude(), startPt.getLatitude());
+                tMapView.setZoomLevel(17);
+            }
+        }
     }
 
     /**

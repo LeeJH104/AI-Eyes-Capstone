@@ -1,6 +1,7 @@
 package com.example.capstone_map.feature.poisearch.state
 
 
+import android.util.Log
 import com.example.capstone_map.common.state.BaseState
 import com.example.capstone_map.feature.poisearch.viewmodel.POISearchViewModel
 
@@ -66,21 +67,28 @@ object ParsingCompleted : POISearchState     {
 object ListingCandidates : POISearchState {
     override fun handle(viewModel: POISearchViewModel) {
         viewModel.readCurrentPoi() // 첫 번째 후보지 읽기
+        Log.d("STATE", "ListingCandidates.handle()")
 
     }
 
     override fun onPrimaryInput(viewModel: POISearchViewModel) { //다음 후보지 읽기
+        Log.d("STATE", "onPrimaryInput() in ListingCandidates")
+
         viewModel.nextPoiIndex() //index +1 후
         viewModel.readCurrentPoi() //읽어버리기
         }
 
     override fun onSecondaryInput(viewModel: POISearchViewModel) { //후보지 선택
         super.onSecondaryInput(viewModel)
+        Log.d("STATE", "onSecondaryInput() in ListingCandidates")
+
         viewModel.confirmCandidate()
     }
 
     override fun onTertiaryInput(viewModel: POISearchViewModel) { // 후보없음
         super.onTertiaryInput(viewModel)
+        Log.d("STATE", "onTertiaryInput() in ListingCandidates")
+        viewModel.speak("후보 없음")
 
     }
 }

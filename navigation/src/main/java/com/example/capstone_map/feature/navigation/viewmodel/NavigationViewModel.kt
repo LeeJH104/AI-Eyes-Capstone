@@ -4,9 +4,11 @@ package com.example.capstone_map.feature.navigation.viewmodel
 
 import android.content.Context
 import android.location.Location
+import android.os.Looper
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.capstone_map.common.location.tracker.LocationTracker
 import com.example.capstone_map.common.location.tracker.LocationUpdateCallback
 import com.example.capstone_map.common.route.Coordinates
@@ -19,6 +21,12 @@ import com.example.capstone_map.common.viewmodel.SharedNavigationViewModel
 import com.example.capstone_map.common.voice.STTManager
 import com.example.capstone_map.common.voice.TTSManager
 import com.example.capstone_map.feature.navigation.GeometryDeserializer
+import com.example.capstone_map.feature.navigation.SafeDoubleAdapterNullable
+import com.example.capstone_map.feature.navigation.SafeDoubleAdapterPrimitive
+import com.example.capstone_map.feature.navigation.SafeIntAdapterNullable
+import com.example.capstone_map.feature.navigation.SafeIntAdapterPrimitive
+import com.example.capstone_map.feature.navigation.SafeLongAdapterNullable
+import com.example.capstone_map.feature.navigation.SafeLongAdapterPrimitive
 import com.example.capstone_map.feature.navigation.sensor.CompassManager
 import com.example.capstone_map.feature.navigation.state.AligningDirection
 import com.example.capstone_map.feature.navigation.state.GuidingNavigation
@@ -27,7 +35,14 @@ import com.example.capstone_map.feature.navigation.state.NavigationFinished
 import com.example.capstone_map.feature.navigation.state.NavigationState
 import com.example.capstone_map.feature.navigation.state.RouteDataParsing
 import com.example.capstone_map.feature.navigation.state.RouteSearching
+import com.example.capstone_map.feature.navigation.state.StartNavigationPreparation
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.util.Timer
 import java.util.TimerTask
@@ -57,14 +72,35 @@ class NavigationViewModel(
     private val compassManager = CompassManager(context)
 
 
+    private var alignmentJob: Job? = null
 
 
     fun updateState(newState: NavigationState) {
-        val previousState = navigationState.value
-        navigationState.value = newState
+        val applyOnMain: () -> Unit = let@{
+            // 같은 타입이면 불필요한 전이/handle 방지
+            val previousState = navigationState.value
+            if (previousState?.javaClass == newState.javaClass) return@let
 
-        handleLocationTrackingTransition(previousState, newState)
-        newState.handle(this)
+            //  LiveData는 메인에서 setValue
+            navigationState.value = newState
+
+            //  공용 상태에도 현재 네비게이션 상태 그대로 반영 (임의로 StartNavigationPreparation 덮어쓰지 않음)
+            stateViewModel.setNavState("NAV", newState)
+
+            //  부수효과(추적 on/off 등) → 이전/신규 상태 기준으로 처리
+            handleLocationTrackingTransition(previousState, newState)
+
+            //  상태 진입 동작도 메인에서
+            newState.handle(this)
+        }
+
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            // 이미 메인 스레드면 즉시 적용
+            applyOnMain()
+        } else {
+            // 백그라운드(OkHttp 등)에서 호출된 경우 메인으로 스위치
+            viewModelScope.launch(Dispatchers.Main) { applyOnMain() }
+        }
     }
 
 
@@ -111,7 +147,7 @@ class NavigationViewModel(
                     try {
                         val jsonString = json.toString()
                         stateViewModel.routeJsonData.postValue(jsonString) // ✅ 문자열로 저장
-
+                        Log.d("NAVIGATION_RAW_JSON", "Received JSON: $jsonString") // ✅ 원본 JSON 데이터 출력
                         updateState(RouteDataParsing) // 다음 상태로 넘김
 
                     } catch (e: Exception) {
@@ -128,9 +164,12 @@ class NavigationViewModel(
 
     /** 받아온 데이터 파싱 */
     fun parseRawJson() {
-        val gson = GsonBuilder()
-            .registerTypeAdapter(Geometry::class.java, GeometryDeserializer())
+// Gson 인스턴스를 만드는 곳 (예시)
+        val gson: Gson = GsonBuilder()
+            .registerTypeAdapter(Geometry::class.java, GeometryDeserializer()) // 이 부분을 추가!
             .create()
+
+
         val routeJsonString = stateViewModel.routeJsonData.value ?: return
 
         val routeData = gson.fromJson(routeJsonString, FeatureCollection::class.java)
@@ -331,6 +370,7 @@ class NavigationViewModel(
                     }
                 } else {
                     Log.w("NAVIGATION", "⚠️ 안내 문구 없음 (index $index)")
+
                 }
 
                 break // 이미 처리한 포인트는 더 이상 반복 안 함
@@ -359,6 +399,20 @@ class NavigationViewModel(
 
 
 
+    fun startAlignmentLoop(intervalMs: Long = 1000L) {
+        if (alignmentJob?.isActive == true) return
+        alignmentJob = viewModelScope.launch(Dispatchers.Main) {
+            while (isActive && navigationState.value is AligningDirection) {
+                alignDirectionToFirstPoint()   // ← 아래 함수가 말해줌
+                delay(intervalMs)
+            }
+        }
+    }
+
+    fun stopAlignmentLoop() {
+        alignmentJob?.cancel()
+        alignmentJob = null
+    }
 
 
 

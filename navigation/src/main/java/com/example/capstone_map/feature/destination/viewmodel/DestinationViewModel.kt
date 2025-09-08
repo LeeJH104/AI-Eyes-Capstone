@@ -27,6 +27,8 @@ class DestinationViewModel(
 
     fun updateState(state: DestinationState) {
         stateViewModel.navState.value = state
+        stateViewModel.setNavState("DEST", state)
+
         state.handle(this)
     }
 

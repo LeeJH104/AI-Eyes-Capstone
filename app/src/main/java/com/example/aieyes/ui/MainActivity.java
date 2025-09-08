@@ -21,6 +21,7 @@ import com.example.capstone_map.feature.NavigationActivity;
  * - STT, 제스처로 네비게이션 또는 영수증 기능을 실행할 수 있도록 함
  * - 모든 제스처 처리는 GestureManager 를 통해 구성
  */
+
 public class MainActivity extends AppCompatActivity {
 
     private TTSManager ttsManager;

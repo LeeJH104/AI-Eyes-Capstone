@@ -1,6 +1,7 @@
     package com.example.capstone_map.common.viewmodel
 
     import android.location.Location
+    import android.util.Log
     import androidx.lifecycle.MutableLiveData
     import androidx.lifecycle.ViewModel
     import com.example.capstone_map.common.poi.Poi
@@ -35,5 +36,15 @@
 
         val currentAzimuth = MutableLiveData<Float>()// 현재 방위각
 
+
+        // SharedNavigationViewModel.kt
+        fun setNavState(owner: String, state: BaseState<*>) {
+            Log.d("STATE_SET", "by=$owner -> $state")
+            navState.value = state
+        }
+        fun postNavState(owner: String, state: BaseState<*>) {
+            Log.d("STATE_SET", "by=$owner (post) -> $state")
+            navState.postValue(state)
+        }
 
     }
