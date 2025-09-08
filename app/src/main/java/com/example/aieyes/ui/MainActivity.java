@@ -149,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        isSelected = false; // 다시 돌아왔을 때만 초기화
+        isSelected = false;
 
         if (isInitialized) {
         Log.d("MainActivity", "onResume: 화면으로 복귀하여 안내 메시지 다시 시작");

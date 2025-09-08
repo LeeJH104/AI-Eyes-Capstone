@@ -1,7 +1,11 @@
 package com.example.capstone_map.feature.navigation.state
 
+import androidx.lifecycle.viewModelScope
 import com.example.capstone_map.common.state.BaseState
 import com.example.capstone_map.feature.navigation.viewmodel.NavigationViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 // 길안내(네비게이션) 관련 상태를 표현하는 sealed class
 sealed interface NavigationState : BaseState<NavigationViewModel>
@@ -36,9 +40,12 @@ object RouteDataParsing : NavigationState{
 object AligningDirection : NavigationState {
     override fun handle(viewModel: NavigationViewModel) {
 
-        viewModel.startTrackingLocation()  // tracking 시작
+        //viewModel.startTrackingLocation()  // tracking 시작
         viewModel.startCompassTracking()
-        viewModel.alignDirectionToFirstPoint()
+        viewModel.viewModelScope.launch(Dispatchers.Main) {
+            delay(500) // 위치/방위값 들어올 시간 살짝 기다림
+            viewModel.alignDirectionToFirstPoint()
+        }
 
     }
 }
@@ -50,14 +57,14 @@ object AligningDirection : NavigationState {
 /** 실제 길안내 진행 중 (경로 안내, 턴 바이 턴 등) */
 object GuidingNavigation : NavigationState {
     override fun handle(viewModel: NavigationViewModel) {
-        viewModel.startTrackingLocation()
+        //viewModel.startTrackingLocation()
     }
 }
 
 /** 길안내 종료 또는 중단 */
 object NavigationFinished : NavigationState {
     override fun handle(viewModel: NavigationViewModel) {
-        viewModel.stopTrackingLocation()
+        //viewModel.stopTrackingLocation()
         viewModel.speak("목적지에 도착했습니다. 안내를 종료합니다.")
     }
 }

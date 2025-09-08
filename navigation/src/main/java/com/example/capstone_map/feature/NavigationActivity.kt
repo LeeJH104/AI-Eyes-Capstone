@@ -11,6 +11,7 @@ import com.example.capstone_map.common.di.NavigationAssembler
 import com.example.capstone_map.common.map.TMapInitializer
 import com.example.capstone_map.common.permission.micAndGpsPermissions
 import com.example.capstone_map.common.permission.registerMicAndGpsPermissionLauncher
+import com.example.capstone_map.common.route.MapRouteDisplayer
 import com.example.capstone_map.common.stateChecker.renderNavigationState
 import com.example.capstone_map.common.voice.STTManager
 import com.example.capstone_map.common.voice.TTSManager
@@ -20,6 +21,8 @@ import com.example.capstone_map.feature.navigation.viewmodel.NavigationViewModel
 
 import com.skt.Tmap.TMapView
 class NavigationActivity : AppCompatActivity() {
+
+    private var firstFix = false   // 첫 GPS 수신 때만 지도 중심 이동
 
     private lateinit var ttsManager: TTSManager
     private lateinit var sttManager: STTManager
@@ -42,11 +45,47 @@ class NavigationActivity : AppCompatActivity() {
 //        val tmapContainer: LinearLayout = findViewById(R.id.linearLayoutTmap)
         tMapView = TMapInitializer.setupTMapView(this, binding.linearLayoutTmap)
 
+        tMapView?.apply {
+            setIconVisibility(true)   // 내 위치 아이콘 보이게
+            setTrackingMode(true)     // 지도 자동 따라오기
+            setZoomLevel(17)          // (선택) 적당한 확대 레벨
+        }
+
+        val displayer = MapRouteDisplayer(tMapView!!)
+
+
+
 //        tMapView = TMapInitializer.setupTMapView(this, tmapContainer)
 
         // 어셈블러 및 뷰모델 초기화
         assembler = NavigationAssembler(this, this)
+        assembler.stateViewModel.routePointFeatures.observe(this) { points ->
+            if (!points.isNullOrEmpty()) {
+                displayer.displayFromPointFeatures(points)
+            }
+        }
         destinationViewModel = assembler.destinationViewModel
+
+        val stateVM = assembler.stateViewModel
+        // 현재 위치가 바뀔 때마다 지도 업데이트
+        stateVM.currentLocation.observe(this) { loc ->
+            // ⚠️ TMap은 보통 (lon, lat) 순서
+            tMapView?.setLocationPoint(loc.longitude, loc.latitude)
+
+            // 첫 수신 때만 지도 중심 이동
+            if (!firstFix) {
+                tMapView?.setCenterPoint(loc.longitude, loc.latitude)
+                firstFix = true
+            }
+        }
+
+        // (선택) 네비 상태에 따라 지도 트래킹 on/off
+        stateVM.navState.observe(this) { state ->
+            val trackingOn = state is com.example.capstone_map.feature.navigation.state.AligningDirection ||
+                    state is com.example.capstone_map.feature.navigation.state.GuidingNavigation
+            tMapView?.setTrackingMode(trackingOn)
+        }
+
 
         // 권한 런처 등록 및 요청
         //간단하게처리
@@ -101,6 +140,8 @@ class NavigationActivity : AppCompatActivity() {
         ttsManager.shutdown()
         sttManager.destroy()
     }
+
+
 
     override fun onRequestPermissionsResult(
         requestCode: Int, permissions: Array<String>, grantResults: IntArray
