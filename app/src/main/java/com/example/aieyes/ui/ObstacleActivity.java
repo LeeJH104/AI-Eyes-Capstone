@@ -98,7 +98,7 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
         btnToggleAnalysis = findViewById(R.id.btn_toggle_analysis);
         progressBar = findViewById(R.id.progressBar);
         cameraExecutor = Executors.newSingleThreadExecutor();
-        objectDetectorHelper = new ObjectDetectorHelper(this, "ssd_mobilenet_v1_1_metadata_1.tflite", 0.5f, 2, 5, this);
+        objectDetectorHelper = new ObjectDetectorHelper(this, "1.tflite", 0.5f, 2, 5, this);
 
         btnToggleAnalysis.setOnClickListener(v -> toggleAnalysis());
 
