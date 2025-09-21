@@ -1,11 +1,15 @@
 package com.example.aieyes.ui;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.hardware.camera2.CameraCharacteristics;
+import android.media.AudioAttributes;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.util.Base64;
 import android.util.Log;
 import android.util.Size;
@@ -20,9 +24,9 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.camera.camera2.interop.Camera2CameraInfo;
+import androidx.camera.camera2.interop.ExperimentalCamera2Interop;
 import androidx.camera.core.CameraInfo;
 import androidx.camera.core.CameraSelector;
-import androidx.camera.core.CameraUnavailableException;
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
@@ -30,7 +34,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
 
-import com.example.aieyes.R; // R 클래스 import
+import com.example.aieyes.R;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.JsonObject;
 
@@ -57,25 +61,25 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ObstacleActivity extends AppCompatActivity implements ObjectDetectorHelper.DetectorListener {
 
+    private SoundPool soundPool;
+    private int detectionSoundId;
+    private final String UTTERANCE_ID = "ai_eyes_utterance";
+
     private PreviewView previewView;
     private TextView txtResult;
     private Button btnToggleAnalysis;
     private ProgressBar progressBar;
-
     private UploadApi api;
     private TextToSpeech tts;
     private ExecutorService cameraExecutor;
-
     private boolean isContinuousAnalysis = false;
     private long lastCloudApiCallTime = 0;
-    private static final long CLOUD_API_INTERVAL_MS = 5000; // 클라우드 API 호출 최소 간격 (5초)
-
+    private static final long CLOUD_API_INTERVAL_MS = 5000;
     private ObjectDetectorHelper objectDetectorHelper;
     private Bitmap bitmapBuffer = null;
     private static final Set<String> DANGEROUS_OBJECTS = new HashSet<>(Arrays.asList(
             "car", "bicycle", "motorcycle", "bus", "truck", "person", "chair", "table"
     ));
-
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) { startCamera(); } else {
@@ -93,22 +97,14 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
         txtResult = findViewById(R.id.txt_result);
         btnToggleAnalysis = findViewById(R.id.btn_toggle_analysis);
         progressBar = findViewById(R.id.progressBar);
-
         cameraExecutor = Executors.newSingleThreadExecutor();
-
-        objectDetectorHelper = new ObjectDetectorHelper(
-                this,
-                "1.tflite",
-                0.5f,
-                2,
-                5,
-                this
-        );
+        objectDetectorHelper = new ObjectDetectorHelper(this, "ssd_mobilenet_v1_1_metadata_1.tflite", 0.5f, 2, 5, this);
 
         btnToggleAnalysis.setOnClickListener(v -> toggleAnalysis());
 
         setupNetwork();
         setupTTS();
+        setupSoundPool();
         checkCameraPermission();
     }
 
@@ -116,8 +112,8 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
         isContinuousAnalysis = !isContinuousAnalysis;
         if (isContinuousAnalysis) {
             btnToggleAnalysis.setText("분석 중지");
-            txtResult.setText("연속 분석 모드가 시작되었습니다.");
             tts.speak("연속 분석을 시작합니다.", TextToSpeech.QUEUE_FLUSH, null, null);
+            resetState();
         } else {
             btnToggleAnalysis.setText("분석 시작");
             txtResult.setText("분석이 중지되었습니다.");
@@ -140,18 +136,15 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
                 Preview preview = new Preview.Builder().build();
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
-
                 CameraSelector cameraSelector = getWideAngleCameraSelector(cameraProvider);
                 if (cameraSelector == null) {
                     cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
                 }
-
                 ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
                         .setTargetResolution(new Size(640, 480))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
                         .build();
-
                 imageAnalysis.setAnalyzer(cameraExecutor, imageProxy -> {
                     if (bitmapBuffer == null) {
                         bitmapBuffer = Bitmap.createBitmap(imageProxy.getWidth(), imageProxy.getHeight(), Bitmap.Config.ARGB_8888);
@@ -163,7 +156,6 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
                     }
                     imageProxy.close();
                 });
-
                 cameraProvider.unbindAll();
                 cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis);
             } catch (ExecutionException | InterruptedException e) {
@@ -172,7 +164,7 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
         }, ContextCompat.getMainExecutor(this));
     }
 
-    @androidx.camera.camera2.interop.ExperimentalCamera2Interop
+    @ExperimentalCamera2Interop
     @SuppressWarnings("deprecation")
     private CameraSelector getWideAngleCameraSelector(ProcessCameraProvider cameraProvider) {
         CameraSelector wideAngleCameraSelector = null;
@@ -180,6 +172,7 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
         try {
             for (CameraInfo cameraInfo : cameraProvider.getAvailableCameraInfos()) {
                 if (Camera2CameraInfo.from(cameraInfo).getCameraCharacteristic(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_BACK) {
+                    @SuppressLint("RestrictedApi")
                     CameraCharacteristics characteristics = Camera2CameraInfo.extractCameraCharacteristics(cameraInfo);
                     float[] focalLengths = characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS);
                     if (focalLengths != null && focalLengths.length > 0) {
@@ -204,26 +197,25 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
 
     @Override
     public void onResults(List<Detection> results, long inferenceTime) {
-        if (progressBar.getVisibility() == View.VISIBLE) return;
+        if (progressBar.getVisibility() == View.VISIBLE || !isContinuousAnalysis) return;
 
         boolean shouldCallCloudApi = false;
-        String detectedObjectName = "";
-
         for (Detection detection : results) {
             String label = detection.getCategories().get(0).getLabel();
             if (DANGEROUS_OBJECTS.contains(label)) {
                 shouldCallCloudApi = true;
-                detectedObjectName = label;
                 break;
             }
         }
 
         if (shouldCallCloudApi && (System.currentTimeMillis() - lastCloudApiCallTime > CLOUD_API_INTERVAL_MS)) {
             lastCloudApiCallTime = System.currentTimeMillis();
-            final String detectedObjNameFinal = detectedObjectName;
+            if (soundPool != null) {
+                soundPool.play(detectionSoundId, 1, 1, 1, 0, 1.0f);
+            }
             runOnUiThread(() -> {
                 progressBar.setVisibility(View.VISIBLE);
-                txtResult.setText(detectedObjNameFinal + " 발견! 상세 분석을 요청합니다...");
+                txtResult.setText("탐지 중...");
             });
             String base64Image = bitmapToBase64(bitmapBuffer);
             sendImageToServer(base64Image);
@@ -236,33 +228,75 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
     }
 
     private void sendImageToServer(String base64Image) {
-        int analysisLevel = 2;
         JsonObject json = new JsonObject();
         json.addProperty("image", base64Image);
-        json.addProperty("level", analysisLevel);
+        json.addProperty("level", 2);
 
         api.sendImage(json).enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(@NonNull Call<JsonObject> call, @NonNull Response<JsonObject> response) {
-                runOnUiThread(() -> progressBar.setVisibility(View.GONE));
                 if (response.isSuccessful() && response.body() != null) {
                     String resultText = response.body().get("result").getAsString();
                     runOnUiThread(() -> txtResult.setText(resultText));
-                    tts.speak(resultText, TextToSpeech.QUEUE_FLUSH, null, null);
+                    Bundle params = new Bundle();
+                    params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, UTTERANCE_ID);
+                    tts.speak(resultText, TextToSpeech.QUEUE_FLUSH, params, UTTERANCE_ID);
                 } else {
-                    runOnUiThread(() -> txtResult.setText("서버 응답 실패: " + response.code()));
+                    runOnUiThread(() -> resetState());
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<JsonObject> call, @NonNull Throwable t) {
-                runOnUiThread(() -> {
-                    progressBar.setVisibility(View.GONE);
-                    txtResult.setText("네트워크 오류: " + t.getMessage());
-                });
                 Log.e("RetrofitError", "Cloud API 통신 실패", t);
+                runOnUiThread(() -> resetState());
             }
         });
+    }
+
+    private void setupTTS() {
+        tts = new TextToSpeech(this, status -> {
+            if (status == TextToSpeech.SUCCESS) {
+                tts.setLanguage(Locale.KOREAN);
+                tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                    @Override
+                    public void onStart(String utteranceId) {}
+
+                    @Override
+                    public void onDone(String utteranceId) {
+                        if (UTTERANCE_ID.equals(utteranceId)) {
+                            runOnUiThread(() -> resetState());
+                        }
+                    }
+
+                    @Override
+                    public void onError(String utteranceId) {
+                        runOnUiThread(() -> resetState());
+                    }
+                });
+            }
+        });
+    }
+
+    private void setupSoundPool() {
+        AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build();
+        soundPool = new SoundPool.Builder()
+                .setMaxStreams(1)
+                .setAudioAttributes(audioAttributes)
+                .build();
+        detectionSoundId = soundPool.load(this, R.raw.detection_sound, 1);
+    }
+
+    private void resetState() {
+        progressBar.setVisibility(View.GONE);
+        if (isContinuousAnalysis) {
+            txtResult.setText("주변을 계속 분석 중입니다...");
+        } else {
+            txtResult.setText("분석을 시작하려면 버튼을 누르세요.");
+        }
     }
 
     private String bitmapToBase64(Bitmap bitmap) {
@@ -303,14 +337,6 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
         api = retrofit.create(UploadApi.class);
     }
 
-    private void setupTTS() {
-        tts = new TextToSpeech(this, status -> {
-            if (status == TextToSpeech.SUCCESS) {
-                tts.setLanguage(Locale.KOREAN);
-            }
-        });
-    }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -318,6 +344,9 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
         if (tts != null) {
             tts.stop();
             tts.shutdown();
+        }
+        if (soundPool != null) {
+            soundPool.release();
         }
     }
 }
