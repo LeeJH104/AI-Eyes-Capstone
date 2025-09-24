@@ -27,7 +27,7 @@ import com.example.capstone_map.feature.navigation.SafeIntAdapterNullable
 import com.example.capstone_map.feature.navigation.SafeIntAdapterPrimitive
 import com.example.capstone_map.feature.navigation.SafeLongAdapterNullable
 import com.example.capstone_map.feature.navigation.SafeLongAdapterPrimitive
-import com.example.capstone_map.feature.navigation.sensor.CompassManager
+import com.example.capstone_map.feature.navigation.sensor.NewCompassManager
 import com.example.capstone_map.feature.navigation.state.AligningDirection
 import com.example.capstone_map.feature.navigation.state.GuidingNavigation
 import com.example.capstone_map.feature.navigation.state.NavigationError
@@ -63,13 +63,23 @@ class NavigationViewModel(
 ) : ViewModel() {
 
 
+    @Volatile private var isSpeaking = false
+
     private var locationTracker: LocationTracker? = null
     private var isTrackingLocation = false // 현재 추적 중인지 상태 저장
     val navigationState = MutableLiveData<NavigationState>()
     private val candidates = mutableListOf<String>() // 예시: 실제로는 POI 모델을 써야 함
     private var currentIndex = 0
     private var lastSpokenIndex = -1 // 중복 안내 방지용
-    private val compassManager = CompassManager(context)
+    // private val compassManager = CompassManager(context)
+
+    private val compassManager = NewCompassManager(context) { deg ->
+        // 각도 변화 임계값 필터(선택)
+        val last = stateViewModel.currentAzimuth.value
+        if (last == null || angleDelta(last, deg) >= 3f) { // 3도 이상 변할 때만 반영 예시
+            stateViewModel.currentAzimuth.postValue(deg)
+        }
+    }
 
 
     private var alignmentJob: Job? = null
@@ -147,7 +157,10 @@ class NavigationViewModel(
                     try {
                         val jsonString = json.toString()
                         stateViewModel.routeJsonData.postValue(jsonString) // ✅ 문자열로 저장
-                        Log.d("NAVIGATION_RAW_JSON", "Received JSON: $jsonString") // ✅ 원본 JSON 데이터 출력
+                        Log.d(
+                            "NAVIGATION_RAW_JSON",
+                            "Received JSON: $jsonString"
+                        ) // ✅ 원본 JSON 데이터 출력
                         updateState(RouteDataParsing) // 다음 상태로 넘김
 
                     } catch (e: Exception) {
@@ -181,10 +194,14 @@ class NavigationViewModel(
             when (feature.geometry.type) {
                 "Point" -> {
                     pointFeatures.add(feature)
-                    Log.d("ROUTE_POINT", "Point: ${feature.geometry.type}, ${feature.properties.description}")
+                    Log.d(
+                        "ROUTE_POINT",
+                        "Point: ${feature.geometry.type}, ${feature.properties.description}"
+                    )
 
 
                 }
+
                 "LineString" -> {
                     lineFeatures.add(feature)
                     Log.d(
@@ -217,12 +234,11 @@ class NavigationViewModel(
     fun startCompassTracking() {
         compassManager.start()
 
-        // 주기적으로 방향을 stateViewModel에 반영
-        Timer().scheduleAtFixedRate(object : TimerTask() {
-            override fun run() {
-                stateViewModel.currentAzimuth.postValue(compassManager.currentAzimuth)
-            }
-        }, 0, 500) // 0.5초마다 업데이트
+    }
+
+
+    fun stopCompassTracking() {
+        compassManager.stop()
     }
 
 
@@ -230,38 +246,29 @@ class NavigationViewModel(
 
 
     fun alignDirectionToFirstPoint() {
-        val currentAzimuth = stateViewModel.currentAzimuth.value ?: return
-        val userLocation = stateViewModel.currentLocation.value ?: return
-        val firstPoint = stateViewModel.routePointFeatures.value?.firstOrNull() ?: return
+        val azimuth = stateViewModel.currentAzimuth.value ?: return
+        val curr    = stateViewModel.currentLocation.value ?: return
 
-        val coords = firstPoint.geometry.coordinates
-        if (coords !is Coordinates.Point) {
-            Log.e("NAVIGATION", "❌ 좌표가 Point 형식이 아님")
-            return
-        }
+        val next = nextPointByIndex() ?: return
+        val p = next.geometry.coordinates as? Coordinates.Point ?: return
+        val target = toLocation(p)
 
-        val lat = coords.lat
-        val lon = coords.lon
+        val bearing = ((curr.bearingTo(target) + 360) % 360)
+        val diff = ((bearing - azimuth + 540) % 360) - 180  // -180..+180 (최소 회전경로)
+        val absDiff = kotlin.math.abs(diff)
+        val threshold = 20f
 
-        val targetLocation = Location("").apply {
-            latitude = lat
-            longitude = lon
-        }
-
-        val bearing = userLocation.bearingTo(targetLocation)
-        val rawDiff = abs(currentAzimuth - bearing)
-        val diff = min(rawDiff, 360 - rawDiff)
-
-        if (diff > 20f) {
-            speak("휴대폰을 ${if (currentAzimuth > bearing) "왼쪽" else "오른쪽"}으로 돌려주세요")
+        if (absDiff > threshold) {
+            val dir = if (diff > 0) "오른쪽" else "왼쪽"
+            speak("휴대폰을 $dir 으로 돌려주세요")
         } else {
             speak("방향이 맞춰졌습니다. 안내를 시작합니다.") {
                 updateState(GuidingNavigation)
             }
         }
+
+
     }
-
-
 
 
     //tracking 및 point도착시 description speak
@@ -297,16 +304,17 @@ class NavigationViewModel(
     }
 
 
-
     fun stopTrackingLocation() {
         locationTracker?.stopTracking()
-        Log.i("TRACKING", "🔴 위치 추적 중지됨")
+        Log.i("TRACKING", " 위치 추적 중지됨")
     }
 
 
-
     //
-    private fun handleLocationTrackingTransition(oldState: NavigationState?, newState: NavigationState) {
+    private fun handleLocationTrackingTransition(
+        oldState: NavigationState?,
+        newState: NavigationState
+    ) {
         val shouldStartTracking = newState is GuidingNavigation || newState is AligningDirection
         val shouldStopTracking = newState is NavigationFinished || newState is NavigationError
 
@@ -324,10 +332,6 @@ class NavigationViewModel(
     }
 
 
-
-
-
-
     private fun checkAndSpeakNextPoint(location: Location) {
         val pointFeatures = stateViewModel.routePointFeatures.value ?: return
         val lastPointIndex = pointFeatures.maxOfOrNull { it.properties.pointIndex ?: -1 } ?: return
@@ -337,13 +341,13 @@ class NavigationViewModel(
         for (feature in pointFeatures) {
             val index = feature.properties.pointIndex ?: continue
             if (index <= lastSpokenIndex) {
-                Log.d("NAVIGATION", "✅ 이미 말한 포인트 index $index → 건너뜀")
+                Log.d("NAVIGATION", "이미 말한 포인트 index $index → 건너뜀")
                 continue
             }
 
             val coords = feature.geometry.coordinates
             if (coords !is Coordinates.Point) {
-                Log.w("NAVIGATION", "⚠️ Point 타입이 아님 (index $index) → 건너뜀")
+                Log.w("NAVIGATION", "⚠Point 타입이 아님 (index $index) → 건너뜀")
                 continue
             }
 
@@ -353,7 +357,7 @@ class NavigationViewModel(
             }
 
             val distance = location.distanceTo(targetLocation)
-            Log.d("NAVIGATION", "📍 index $index 도착지까지 거리: ${"%.2f".format(distance)}m")
+            Log.d("NAVIGATION", "index $index 도착지까지 거리: ${"%.2f".format(distance)}m")
 
             if (distance < 15f) {
                 val description = feature.properties.description
@@ -362,7 +366,7 @@ class NavigationViewModel(
                     lastSpokenIndex = index
 
                     speak(description) {
-                        Log.i("NAVIGATION", "✅ 안내 완료: index $index")
+                        Log.i("NAVIGATION", " 안내 완료: index $index")
                         //lastSpokenIndex = index
 
                         // 🟡 도착 지점인지 확인
@@ -371,7 +375,7 @@ class NavigationViewModel(
                         }
                     }
                 } else {
-                    Log.w("NAVIGATION", "⚠️ 안내 문구 없음 (index $index)")
+                    Log.w("NAVIGATION", "⚠ 안내 문구 없음 (index $index)")
 
                 }
 
@@ -379,7 +383,6 @@ class NavigationViewModel(
             }
         }
     }
-
 
 
     fun speak(text: String, onDone: (() -> Unit)? = null) { //함수 넘겨도되고 안 넘겨도돼
@@ -400,8 +403,7 @@ class NavigationViewModel(
     }
 
 
-
-    fun startAlignmentLoop(intervalMs: Long = 1000L) {
+    fun startAlignmentLoop(intervalMs: Long = 300L) {
         if (alignmentJob?.isActive == true) return
         alignmentJob = viewModelScope.launch(Dispatchers.Main) {
             while (isActive && navigationState.value is AligningDirection) {
@@ -416,74 +418,90 @@ class NavigationViewModel(
         alignmentJob = null
     }
 
+    private fun angleDelta(a: Float, b: Float): Float {
+        var d = (a - b + 540f) % 360f - 180f
+        return kotlin.math.abs(d)
+    }
+
+    private var guidanceJob: Job? = null
+
+    fun startGuidanceLoop(intervalMs: Long = 500L) {
+        if (guidanceJob?.isActive == true) return
+        guidanceJob = viewModelScope.launch(Dispatchers.Main) {
+            while (isActive && navigationState.value is GuidingNavigation) {
+                guideTowardNextPoint()   // 다음 포인트 기준으로 헤딩 체크/안내
+                delay(intervalMs)
+            }
+        }
+    }
 
 
-//    fun fetchCurrentLocation() {
-//
-//        locationFetcher.fetchLocation { location ->
-//            if (location != null) {
-//                // 현재 위치를 stateViewModel에 저장
-//                stateViewModel.currentLocation.postValue(location)
-//                updateState(Searching)
-//
-//            } else {
-//                // 위치를 가져올 수 없을 때 처리
-//                updateState(LocationError)
-//                // 예: 사용자에게 알림 표시, 기본 위치 설정 등
-//            }
-//        }
-//    }
-//
-//    /** 방향 정렬 상태로 변경 */
-//    fun startAligningDirection() {
-//
-//
-//
-//    }
-//
-//    /** 경로 요약 안내 시작 */
-//    fun announceRoute(summary: String) {
-//        DestinationState.value = DestinationState.AnnounceRouteSummary(summary)
-//    }
-//
-//    /** 실제 길안내 시작 */
-//    fun startNavigation(currentStep: Int, totalSteps: Int, nextDirection: String) {
-//        DestinationState.value = DestinationState.GuidingNavigation(
-//            currentStep = currentStep,
-//            totalSteps = totalSteps,
-//            nextDirection = nextDirection
-//        )
-//    }
-//
-//
+    private var lastSpeakAt = 0L
+    private val speakIntervalMs = 2500L // TTS 남발 방지
+
+    private fun guideTowardNextPoint() {
+        val azimuth = stateViewModel.currentAzimuth.value ?: return
+        val curr    = stateViewModel.currentLocation.value ?: return
+
+        val next = nextPointByIndexSkipNear(curr) ?: return
+        val p = next.geometry.coordinates as? Coordinates.Point ?: return
+        val target = toLocation(p)
+
+        val bearing = ((curr.bearingTo(target) + 360) % 360)
+        val diff = ((bearing - azimuth + 540) % 360) - 180
+        val absDiff = kotlin.math.abs(diff)
+        val threshold = 20f
 
 
-//    /** 다음 단계로 진행 */
-//    fun nextStep(currentStep: Int, totalSteps: Int, nextDirection: String) {
-//        if (currentStep >= totalSteps) {
-//            finishNavigation()
-//        } else {
-//            _navigationState.value = NavigationState.GuidingNavigation(
-//                currentStep = currentStep,
-//                totalSteps = totalSteps,
-//                nextDirection = nextDirection
-//            )
-//        }
-//    }
-//
-//    /** 안내 종료 */
-//    fun finishNavigation() {
-//        _navigationState.value = NavigationState.NavigationFinished
-//    }
-//
-//    /** 에러 처리 */
-//    fun showError(message: String) {
-//        _navigationState.value = NavigationState.NavigationError(message)
-//    }
-//
-//    /** 상태 초기화 (필요 시 사용) */
-//    fun resetState() {
-//        _navigationState.value = NavigationState.StartNavigationPreparation
-//    }
-//}
+        if (isSpeaking) return
+
+        // TTS 남발 방지(네 코드에 already 존재)
+        if (System.currentTimeMillis() - lastSpeakAt < speakIntervalMs) return
+
+        if (absDiff > threshold) {
+            val dir = if (diff > 0) "오른쪽" else "왼쪽"
+            speak("휴대폰을 $dir 으로 돌려주세요")
+            lastSpeakAt = System.currentTimeMillis()
+        }
+
+    }
+    fun stopGuidanceLoop() {
+        guidanceJob?.cancel()
+        guidanceJob = null
+    }
+
+
+    override fun onCleared() {
+        super.onCleared()
+        stopAlignmentLoop()     // 방향 맞추는 반복 끔
+        stopGuidanceLoop()      // 안내용 반복 끔
+        stopCompassTracking()   // 나침반 센서 끔
+        stopTrackingLocation()  // GPS 끔
+    }
+
+    private fun toLocation(p: Coordinates.Point) = Location("").apply {
+        latitude = p.lat
+        longitude = p.lon
+    }
+    private fun nextPointByIndex(): Feature? {
+        val points = stateViewModel.routePointFeatures.value ?: return null
+        val nextIdx = lastSpokenIndex + 1
+        return points.firstOrNull { (it.properties.pointIndex ?: -1) >= nextIdx }
+    }
+
+
+    private fun nextPointByIndexSkipNear(curr: Location, minDistM: Float = 8f): Feature? {
+        val points = stateViewModel.routePointFeatures.value ?: return null
+        val nextIdx = lastSpokenIndex + 1
+        return points
+            .filter { (it.properties.pointIndex ?: -1) >= nextIdx }
+            .firstOrNull { f ->
+                val p = f.geometry.coordinates as? Coordinates.Point ?: return@firstOrNull false
+                val loc = toLocation(p)
+                curr.distanceTo(loc) >= minDistM
+            }
+    }
+
+
+
 }

@@ -41,7 +41,12 @@ object AligningDirection : NavigationState {
     override fun handle(viewModel: NavigationViewModel) {
 
         //viewModel.startTrackingLocation()  // tracking 시작
+
+
+
         viewModel.startCompassTracking()
+        viewModel.startAlignmentLoop(300L)
+
         viewModel.viewModelScope.launch(Dispatchers.Main) {
             delay(500) // 위치/방위값 들어올 시간 살짝 기다림
             viewModel.alignDirectionToFirstPoint()
@@ -57,7 +62,9 @@ object AligningDirection : NavigationState {
 /** 실제 길안내 진행 중 (경로 안내, 턴 바이 턴 등) */
 object GuidingNavigation : NavigationState {
     override fun handle(viewModel: NavigationViewModel) {
-        //viewModel.startTrackingLocation()
+
+        viewModel.stopAlignmentLoop()
+        viewModel.startGuidanceLoop(500L)   // ← 도착할 때까지 계속
     }
 }
 
@@ -65,6 +72,9 @@ object GuidingNavigation : NavigationState {
 object NavigationFinished : NavigationState {
     override fun handle(viewModel: NavigationViewModel) {
         //viewModel.stopTrackingLocation()
+        viewModel.stopAlignmentLoop()
+        viewModel.stopGuidanceLoop()
+        viewModel.stopCompassTracking()
         viewModel.speak("목적지에 도착했습니다. 안내를 종료합니다.")
     }
 }
