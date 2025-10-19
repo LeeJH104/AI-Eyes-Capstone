@@ -32,7 +32,7 @@ AI 기반 시각장애인 보조 앱 개발 프로젝트입니다.
   
   com.example.aieyes/
   
-  ├── ui/   화면(Activity, Fragment)
+  ├── feature/   기능 및 화면(Activity, Fragment)
 
   │   ├── MainActivity.java
   
