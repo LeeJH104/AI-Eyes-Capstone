@@ -101,7 +101,7 @@ public class PermissionHelper {
 
             if (shouldShowRationale) {
                 // 일부 거부 → 다시 요청 가능
-                Toast.makeText(activity, "권한이 거부되었습니다. 다시 요청합니다.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(activity, "권한이 거부되었습니다. 권한을 승인되어야 앱을 사용할 수 있습니다.", Toast.LENGTH_SHORT).show();
                 checkAndRequestPermissions();
             } else {
                 // '다시 묻지 않음' 선택된 권한 있음 → 설정으로 유도
