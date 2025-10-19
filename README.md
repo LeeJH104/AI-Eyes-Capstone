@@ -17,14 +17,14 @@ AI 기반 시각장애인 보조 앱 개발 프로젝트입니다.
 - **장애물 탐지**: 카메라 기반 장애물 경고
 
 ## 🛠 개발 환경
-- Language: Java (Android)
-- Framework: Android Studio
+- Language: Java (Android), Python (AI)
+- Framework: Android Studio, Jupyter Notebook
 - Tools: TMAP API, OCR, Object Detection
 - Collaboration: GitHub
 
 ## 🧱 브랜치 전략
 - main: 최종 안정 버전
-- dev: 공통 코드 및 통합 테스트용
+- dev: 공통 코드 및 메인 화면
 - feature/nav, feature/receipt, feature/obstacle 등
 
 ## 📁 폴더 구조
