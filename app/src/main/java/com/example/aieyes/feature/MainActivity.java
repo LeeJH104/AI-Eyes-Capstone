@@ -1,4 +1,4 @@
-package com.example.aieyes.ui;
+package com.example.aieyes.feature;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -15,7 +15,6 @@ import com.example.aieyes.utils.STTManager;
 import com.example.aieyes.utils.TTSManager;
 import com.example.aieyes.utils.VibrationHelper;
 import com.example.capstone_map.feature.NavigationActivity;
-import com.example.aieyes.ui.ObstacleActivity;
 
 /**
  * 앱의 메인 화면 액티비티.
