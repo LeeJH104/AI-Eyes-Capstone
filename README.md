@@ -44,16 +44,6 @@ AI 기반 시각장애인 보조 앱 개발 프로젝트입니다.
   
   │   └── ... (필요 시 Fragment 등)
   
-  ├── service/  기능 처리
-  
-  │   ├── NavigationService.java
-  
-  │   ├── ReceiptOCRService.java
-  
-  │   ├── ObjectDetectionService.java
-  
-  │   └── ...
-  
   ├── utils/    공통 유틸 (TTSManager 등)
   
   │   ├── TTSManager.java
