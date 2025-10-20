@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean isInitialized = false; // 앱 기능 초기화 여부 플래그
     private boolean isSelected = false;    // 기능 중복 선택 방지 플래그
+    private boolean isTtsReady = false; // TTS가 준비되었는지 확인하는 플래그
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +42,8 @@ public class MainActivity extends AppCompatActivity {
         ttsManager = new TTSManager(this);
         // TTS 준비 완료 후, 권한 확인 및 요청
         ttsManager.setOnTTSReadyListener(() -> {
+            isTtsReady = true;
+
             if (PermissionHelper.arePermissionsGranted(this)) {
                 // 권한 있으면, 바로 기능 시작
                 initializeMainFeatures();
@@ -186,8 +189,8 @@ public class MainActivity extends AppCompatActivity {
         if (isInitialized) {
             speakIntroAndListen();
         }
-        // 아직 초기화되지 않은 상태에서 (예: 설정 화면에서) 돌아왔는데, 권한이 모두 부여된 경우
-        else if (PermissionHelper.arePermissionsGranted(this)) {
+        // TTS도 준비됐고, 권한이 부여된 경우 (예: 설정에서 권한 주고 돌아온 경우)
+        else if (isTtsReady && PermissionHelper.arePermissionsGranted(this)) {
             initializeMainFeatures();
         }
     }
@@ -198,6 +201,9 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
         if (stTManager != null) {
             stTManager.stopListening();
+        }
+        if (ttsManager != null) {
+            ttsManager.stop();
         }
     }
 
