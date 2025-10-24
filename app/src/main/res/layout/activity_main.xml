@@ -3,67 +3,42 @@
     android:id="@+id/rootLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:background="#FFFFFF"
     android:clickable="true"
     android:focusable="true"
-    android:weightSum="3">
+    android:weightSum="2"
+    android:padding="24dp">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="2"
-        android:orientation="horizontal"
-        android:padding="24dp">
-
-        <TextView
-            android:id="@+id/tv_navigation"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:text="네비게이션\n\n👉 오른쪽\n스와이프"
-            android:textColor="#000000"
-            android:textSize="28sp"
-            android:textStyle="bold" />
-
-        <View
-            android:layout_width="2dp"
-            android:layout_height="match_parent"
-            android:background="#CCCCCC"
-            android:layout_marginHorizontal="12dp" />
-
-        <TextView
-            android:id="@+id/tv_receipt"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:text="영수증\n\n👈 왼쪽\n스와이프"
-            android:textColor="#000000"
-            android:textSize="28sp"
-            android:textStyle="bold" />
-    </LinearLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:background="#CCCCCC"
-        android:layout_marginHorizontal="24dp" />
-
+    <!-- 네비게이션 안내 텍스트 -->
     <TextView
-        android:id="@+id/tv_obstacle"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
+        android:id="@+id/tv_navigation"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
         android:layout_weight="1"
         android:layout_gravity="center"
         android:gravity="center"
-        android:padding="24dp"
-        android:text="장애물 탐지\n\n👇 아래로\n스와이프"
-        android:textColor="#000000"
-        android:textSize="28sp"
+        android:text="네비게이션 기능\n\n 👉 오른쪽 스와이프 또는 '네비게이션'이라고 말하세요"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+
+    <!-- 가운데 세로 구분선 -->
+    <View
+        android:layout_width="2dp"
+        android:layout_height="match_parent"
+        android:background="#CCCCCC"
+        android:layout_marginHorizontal="12dp" />
+
+    <!-- 영수증 안내 텍스트 -->
+    <TextView
+        android:id="@+id/tv_receipt"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:text="영수증 기능\n\n 👈 왼쪽 스와이프 또는 '영수증'이라고 말하세요"
+        android:textSize="24sp"
         android:textStyle="bold" />
 
 </LinearLayout>
