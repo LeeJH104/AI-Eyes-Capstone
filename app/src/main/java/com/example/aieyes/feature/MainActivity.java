@@ -14,7 +14,8 @@ import com.example.aieyes.utils.PermissionHelper;
 import com.example.aieyes.utils.STTManager;
 import com.example.aieyes.utils.TTSManager;
 import com.example.aieyes.utils.VibrationHelper;
-import com.example.capstone_map.feature.NavigationActivity;
+import com.example.capstone_map.feature.CombinedActivity;
+
 
 /**
  * 앱의 메인 화면 액티비티.
@@ -112,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
             ttsManager.speak("내비게이션 기능을 선택하셨습니다.", () -> {
                 VibrationHelper.vibrateLong(this);
                 VibrationHelper.vibrateLong(this);
-                startActivity(new Intent(MainActivity.this, NavigationActivity.class));
+                startActivity(new Intent(MainActivity.this, CombinedActivity.class));
             });
         } else if (voice.contains("영수증")) {
             isSelected = true;
@@ -150,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
                 isSelected = true;
                 ttsManager.speak("네비게이션 기능을 선택하셨습니다.", () -> {
                     VibrationHelper.vibrateLong(MainActivity.this);
-                    startActivity(new Intent(MainActivity.this, NavigationActivity.class));
+                    startActivity(new Intent(MainActivity.this, CombinedActivity.class));
                 });
             }
             @Override
