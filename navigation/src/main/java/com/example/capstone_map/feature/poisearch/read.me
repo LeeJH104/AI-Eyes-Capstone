@@ -1,0 +1,84 @@
+---
+1. 흐름 정리
+---
+1. StartingSearch       → "내 위치 찾기"
+2. Searching            → "목적지 검색"
+3. SearchCompleted      → "검색 완료"
+4. Parsing              → "결과 파싱"
+5. ParsingCompleted     → "파싱완료"
+6. ListingCandidates    → "후보지 리스팅."
+
+----
+2. 흐름
+
+1단계: StartingSearch (검색 시작)
+    현위치 가져와서 StataVM(공유 저장소)에 저장
+
+    2-1. 성공: 위치 저장
+         → Searching 상태로
+    2-2. 실패: GPS 끄져있거나 실내
+         → LocationError 상태로
+
+2단계: Searching (API 검색 중)
+    내위치로 주변 keyword로 목적지 검색
+
+    3-1 API수신 성공시 JSON데이터 받기
+    3-2 실패시 에러로그
+
+3단계: SearchCompleted (검색 완료)
+
+4단계: API로 받은 목적지들 데이터(geoJson)
+gson으로 코틀린 객체로 변환후 SharedViewModel에 저장
+
+5단계: ParsingCompleted (파싱 완료)
+    ListingCandidates 상태로 즉시 이동
+
+6단계: ListingCandidates (후보지 읽어주기)
+    readCurrentPoi() - 현재 후보지 읽기
+    nextPoiIndex() - 다음 후보지로 index +1
+    confirmCandidate() - 선택 확정 : NaviagtionVM으로
+
+
+---
+
+ 상태 흐름도
+---
+                 [Destination에서 넘어옴]
+                          ↓
+              ┌─────────────────────┐
+              │  StartingSearch     │ ← GPS 위치 요청
+              └─────────────────────┘
+                          ↓
+              ┌─────────────────────┐
+              │  Searching          │ ← API 검색
+              └─────────────────────┘
+                          ↓
+              ┌─────────────────────┐
+              │  SearchCompleted    │
+              └─────────────────────┘
+                          ↓
+              ┌─────────────────────┐
+              │  Parsing            │ ← JSON 파싱
+              └─────────────────────┘
+                          ↓
+              ┌─────────────────────┐
+              │  ParsingCompleted   │
+              └─────────────────────┘
+                          ↓
+              ┌─────────────────────┐
+              │  ListingCandidates  │ ← 후보지 읽기
+              └─────────────────────┘
+                    ↙         ↘
+                오른쪽 (→)   왼쪽 (←)
+                다음 후보     선택!
+                    ↓             ↓
+              다시 읽기     [Navigation으로]
+
+
+
+
+
+
+---
+PoiSearchManager :
+gson : JSON을 코틀린객체와 상호 변환 가능하게해주는 라이브러리

@@ -1,56 +1,45 @@
-<LinearLayout
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     tools:context="com.example.capstone_map.feature.NavigationActivity">
 
-    <!-- 위쪽 영역: 지도 또는 메인 콘텐츠 -->
-    <LinearLayout
-        android:id="@+id/linearLayoutTmap"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:orientation="vertical" />
-
-    <!-- 아래쪽: 버튼들 작게 배치 -->
+    <!-- 기존 레이아웃 전체 -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:weightSum="3"
-        android:padding="8dp">
+        android:layout_height="match_parent"
+        android:orientation="vertical">
 
-        <Button
-            android:id="@+id/gesture1"
-            android:layout_width="0dp"
+        <!-- 위쪽 영역: 지도 또는 메인 콘텐츠 -->
+        <LinearLayout
+            android:id="@+id/linearLayoutTmap"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="제스쳐1" />
+            android:orientation="vertical" />
 
-        <Button
-            android:id="@+id/gesture2"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="제스쳐2" />
 
-        <Button
-            android:id="@+id/gesture3"
-            android:layout_width="0dp"
-            android:layout_weight="1"
+
+        <TextView
+            android:id="@+id/result_text"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="제스쳐3" />
+            android:text="결과가 표시됩니다"
+            android:textSize="16sp"
+            android:padding="8dp"
+            android:gravity="center_horizontal" />
+
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/result_text"
+    <!-- ✨ 제스처 감지용 투명 오버레이 (최상위) -->
+    <View
+        android:id="@+id/gestureOverlay"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="결과가 표시됩니다"
-        android:textSize="16sp"
-        android:padding="8dp"
-        android:gravity="center_horizontal" />
+        android:layout_height="match_parent"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="#00000000" />
 
-</LinearLayout>
+</FrameLayout>

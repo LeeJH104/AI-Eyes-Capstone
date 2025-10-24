@@ -10,7 +10,7 @@ import com.example.capstone_map.feature.destination.viewmodel.factory.Destinatio
 import com.example.capstone_map.feature.poisearch.viewmodel.POISearchViewModel
 import com.example.capstone_map.feature.poisearch.viewmodel.factory.POISearchViewModelFactory
 import com.example.capstone_map.common.location.oncefetcher.LocationFetcher
-import com.example.capstone_map.common.viewmodel.SharedNavigationViewModel
+import com.example.capstone_map.common.sharedVM.SharedNavigationViewModel
 import com.example.capstone_map.common.voice.STTManager
 import com.example.capstone_map.common.voice.TTSManager
 import com.example.capstone_map.feature.navigation.viewmodel.NavigationViewModel
@@ -25,12 +25,12 @@ class NavigationAssembler(
 
 
 
-    //shanredViewmodel 모든 viewmodel이 공유하는 데이터 저장소
-    val stateViewModel: SharedNavigationViewModel by lazy {
+    //1. shanredViewmodel 모든 viewmodel이 공유하는 데이터 저장소
+    val sharedNavigationViewModel: SharedNavigationViewModel by lazy {
         ViewModelProvider(owner)[SharedNavigationViewModel::class.java]
     }
 
-    //필요한 인스턴스 생성
+    //2. 필요한 인스턴스 생성
     private val _ttsManager by lazy { TTSManager(activity) }
     private val _sttManager by lazy { STTManager(activity) }
 
@@ -42,7 +42,7 @@ class NavigationAssembler(
 
 
 
-    //  뷰모델 "제공자" 맵: 호출 시점에 생성
+    //  3. 뷰모델 "제공자" 맵: 호출 시점에 생성
     private val providers: Map<KClass<out ViewModel>, () -> ViewModel> = mapOf(
 
         NavigationViewModel::class to {
@@ -50,7 +50,7 @@ class NavigationAssembler(
                 owner,
                 NavigationViewModelFactory(
                     context = activity,
-                    stateViewModel = stateViewModel,
+                    stateViewModel = sharedNavigationViewModel,
                     ttsManager = ttsManager,
                     sttManager = sttManager
                 )
@@ -62,7 +62,7 @@ class NavigationAssembler(
             ViewModelProvider(
                 owner,
                 POISearchViewModelFactory(
-                    stateViewModel,
+                    sharedNavigationViewModel,
                     navVM,
                     _locationFetcher,
                     ttsManager,
@@ -76,7 +76,7 @@ class NavigationAssembler(
             ViewModelProvider(
                 owner,
                 DestinationViewModelFactory(
-                    stateViewModel,
+                    sharedNavigationViewModel,
                     poiVM,
                     ttsManager,
                     sttManager
@@ -85,6 +85,10 @@ class NavigationAssembler(
         }
     )
 
+
+
+
+    //4
     @Suppress("UNCHECKED_CAST")
     fun <T : ViewModel> getViewModel(vmClass: KClass<T>): T {
         val provider = providers[vmClass]

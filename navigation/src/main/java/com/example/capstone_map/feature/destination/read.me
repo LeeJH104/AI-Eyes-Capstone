@@ -1,0 +1,63 @@
+---
+1. 흐름
+
+
+State
+1단계: AwaitingDestinationInput (대기)
+    스와이프 하면 다음 상태로 넘어감
+2단계: ListeningForDestination (듣는 중)
+     - viewModel에서 음성인식 성공시
+     목적지를 stateVM에 저장후 확인 단계로
+     - 실패시 1단계로 다시
+3단계: AskingDestinationConfirmation (확인 요청)
+      저장된 목적지를 다시 들려주고 재확인
+      맞으면 오른쪽 스와이프 -> 4-1 DestinationRight (확인됨) 상태로
+      아니면 왼쪽스와이프 -> 4-2 DestinationWrong (틀림) 상태로
+
+4-1단계: DestinationRight (확인됨)
+    VM에서 5단계 SearchingDestination (검색) 단계로
+
+4-2단계: DestinationWrong (잘못 들음)
+    ListeningForDestination 상태로 (다시 듣기 상태)
+
+
+5단계: SearchingDestination (검색 시작)
+    POI 검색 VM으로 넘어간다
+    해당 VM 상태도 StartingSearch로 변경
+
+
+
+---
+
+## 전체 흐름도
+```
+                                [앱 시작]
+                                    ↓
+                    ┌───────────────────────────────┐
+                    │ AwaitingDestinationInput      │ ← "버튼 눌러주세요"
+                    └───────────────────────────────┘
+                                    ↓ 오른쪽 스와이프 (→)
+                    ┌───────────────────────────────┐
+                    │ ListeningForDestination       │ ← STT 실행 중
+                    └───────────────────────────────┘
+                                    ↓ 음성 인식 성공
+                                    ↓ "홍대입구역" 저장
+                    ┌───────────────────────────────┐
+                    │ AskingDestinationConfirmation │ ← "홍대입구역 맞나요?"
+                    └───────────────────────────────┘
+                            ↙               ↘
+                    왼쪽 (←)                오른쪽 (→)
+                    "아니요"                "네"
+                        ↓                       ↓
+                ┌──────────────┐      ┌──────────────┐
+                │DestinationWrong│    │DestinationRight│
+                └──────────────┘      └──────────────┘
+                        ↓                       ↓
+                "다시 말씀해주세요"         즉시 진행
+                        ↓                       ↓
+       두번째로             ┌──────────────────┐
+            ↑             │SearchingDestination│
+            └─────────────└──────────────────┘
+                                  ↓
+                          POI 검색 시작
+                        (다음 모듈로 넘어감)

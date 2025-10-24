@@ -3,7 +3,7 @@ package com.example.capstone_map.feature.navigation.viewmodel.factory
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.capstone_map.common.viewmodel.SharedNavigationViewModel
+import com.example.capstone_map.common.sharedVM.SharedNavigationViewModel
 import com.example.capstone_map.common.voice.STTManager
 import com.example.capstone_map.common.voice.TTSManager
 import com.example.capstone_map.feature.navigation.viewmodel.NavigationViewModel

@@ -40,17 +40,18 @@ object RouteDataParsing : NavigationState{
 object AligningDirection : NavigationState {
     override fun handle(viewModel: NavigationViewModel) {
 
-        //viewModel.startTrackingLocation()  // tracking 시작
+        viewModel.startTrackingLocation()  // tracking 시작
 
 
 
-        viewModel.startCompassTracking()
-        viewModel.startAlignmentLoop(300L)
+        viewModel.startCompassTracking() //1. 나침반센서 시작
+        viewModel.startAlignmentLoop(150L) //2. 0.3초마다 방향 체크
 
-        viewModel.viewModelScope.launch(Dispatchers.Main) {
-            delay(500) // 위치/방위값 들어올 시간 살짝 기다림
-            viewModel.alignDirectionToFirstPoint()
-        }
+// 중복호출
+//        viewModel.viewModelScope.launch(Dispatchers.Main) {
+//            delay(500) // 위치/방위값 들어올 시간 살짝 기다림
+//            viewModel.checkAndGuideDirectionAlignment()
+//        }
 
     }
 }
@@ -71,7 +72,7 @@ object GuidingNavigation : NavigationState {
 /** 길안내 종료 또는 중단 */
 object NavigationFinished : NavigationState {
     override fun handle(viewModel: NavigationViewModel) {
-        //viewModel.stopTrackingLocation()
+        viewModel.stopTrackingLocation()
         viewModel.stopAlignmentLoop()
         viewModel.stopGuidanceLoop()
         viewModel.stopCompassTracking()

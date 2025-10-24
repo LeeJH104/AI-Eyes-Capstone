@@ -1,0 +1,22 @@
+navigation Activity 구성
+
+
+------
+■ oncreate()
+
+1. 화면바인딩
+2. tmap 초기화,
+3. MapRouteDisplayer ( map 관련 메서드들 담긴 클래스) 만들기
+4. assembler (의존성 주입) 생성 (스프링 컨테이너느낌)
++ assembler에서 뽑아온 statviewmodel(모든 viewmodel이 공유하는 저장소 sharedViewModel) 에서
+routePoiFeature라는 변수를 감시하고있다가 값이 들어오거나 변하면  MapRouteDisplayer에 넘겨서 경로 Tmap에 시각화
+5. SharedViewModel에서 현재 위치 변수 감시하다가 바뀌면 지도의 중심 이동
+6. 네비상태에 따라 지도 Tracking
+7. 권한 등록 요청 (필요없을 것 같음)
+
+---
+
+■ startapp()
+1. NaviViewModel을 assembler에서 가져와서 gps추적시작
+2. DesinationVM의 상태를 AwatingDestinationInput상태로 만듦 -> 시작준비, 초기상태로 만드는것
+3. NavigationGestureBinder -> 스와이프를 각각의 상태에  연결

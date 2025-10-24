@@ -12,7 +12,7 @@ import com.example.capstone_map.feature.poisearch.state.Searching
 import com.example.capstone_map.common.location.oncefetcher.LocationFetcher
 import com.example.capstone_map.common.poi.TmapSearchPoiResponse
 import com.example.capstone_map.common.route.Geometry
-import com.example.capstone_map.common.viewmodel.SharedNavigationViewModel
+import com.example.capstone_map.common.sharedVM.SharedNavigationViewModel
 import com.example.capstone_map.common.voice.STTManager
 import com.example.capstone_map.common.voice.TTSManager
 import com.example.capstone_map.feature.navigation.GeometryDeserializer
@@ -54,8 +54,6 @@ class POISearchViewModel(
 
         stateViewModel.setNavState("POI", ListingCandidates)
 
-
-
         state.handle(this)
     }
 
@@ -82,6 +80,8 @@ class POISearchViewModel(
     fun fetchCandidatesFromAPI() {
         val destination =  getDestination()
         val location = getLocation()
+
+
         if (location != null) {
             val lat = location.latitude
             val lon = location.longitude
@@ -95,8 +95,8 @@ class POISearchViewModel(
                         stateViewModel.geoJsonData.value = geoJson  // setValue()
 
                         // JSON 결과를 StateViewModel의 LiveData에 저장
-                        // ✅ 결과 로그
-                        Log.d("PoiSearch", "API 결과 수신 ✅\n$geoJson")
+                        //  결과 로그
+                        Log.d("PoiSearch", "API 결과 수신 \n$geoJson")
                         updateState(SearchCompleted)
 
                     } else {
@@ -185,7 +185,9 @@ class POISearchViewModel(
     // 5. 파싱완료후 다음 상태 (후보지 나열상태)로
     fun showNextCandidate() {
         updateState(ListingCandidates)
-}
+
+        speak("다음후보지는 오른쪽스와이프 , 해당 후보지를 선택하려면 왼쪽 스와이프를 진행하세요")
+    }
 
 
 
@@ -264,14 +266,6 @@ class POISearchViewModel(
         return if (m < 1000) "${m}미터" else String.format(Locale.KOREA, "%.1f킬로미터", km)
     }
 
-
-    fun skipCandidate() {
-
-    }
-
-    fun handleNoCandidates() {
-        // 필요 시 목적지 입력 단계로 다시 보내기
-    }
 
 
     // 가져오기
