@@ -74,7 +74,7 @@ class NavigationActivity : AppCompatActivity() {
 
         // 5. sharedViewModel에서 현재 위치가 바뀔 때마다 지도 업데이트
         stateVM.currentLocation.observe(this) { loc ->
-            // ⚠️ TMap은 보통 (lon, lat) 순서
+            //  TMap은 보통 (lon, lat) 순서
             tMapView?.setLocationPoint(loc.longitude, loc.latitude)
 
             // 첫 수신 때만 지도 중심 이동

@@ -53,6 +53,7 @@ dependencies {
 
     // (쓰는 경우만) Tmap JAR — navigation/libs/ 로 복사해 두고 api 로 노출
     api(files("libs/com.skt.Tmap_1.76.jar"))
+    implementation(libs.androidx.camera.view)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
