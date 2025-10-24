@@ -23,8 +23,9 @@
             android:layout_weight="1"
             android:layout_gravity="center"
             android:gravity="center"
-            android:text="네비게이션 기능\n\n 👉 오른쪽 스와이프 또는 '네비게이션'이라고 말하세요"
-            android:textSize="24sp"
+            android:text="네비게이션\n\n👉 오른쪽\n스와이프"
+            android:textColor="#000000"
+            android:textSize="28sp"
             android:textStyle="bold" />
 
         <View
@@ -40,8 +41,9 @@
             android:layout_weight="1"
             android:layout_gravity="center"
             android:gravity="center"
-            android:text="영수증 기능\n\n 👈 왼쪽 스와이프 또는 '영수증'이라고 말하세요"
-            android:textSize="24sp"
+            android:text="영수증\n\n👈 왼쪽\n스와이프"
+            android:textColor="#000000"
+            android:textSize="28sp"
             android:textStyle="bold" />
     </LinearLayout>
 
@@ -59,8 +61,9 @@
         android:layout_gravity="center"
         android:gravity="center"
         android:padding="24dp"
-        android:text="장애물 탐지 기능\n\n 👇 아래로 스와이프 또는 '장애물 탐지'라고 말하세요"
-        android:textSize="24sp"
+        android:text="장애물 탐지\n\n👇 아래로\n스와이프"
+        android:textColor="#000000"
+        android:textSize="28sp"
         android:textStyle="bold" />
 
 </LinearLayout>

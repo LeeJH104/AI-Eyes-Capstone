@@ -122,6 +122,15 @@ public class TTSManager {
     }
 
     /**
+     * 현재 진행 중인 TTS 음성 출력을 즉시 중지합니다.
+     */
+    public void stop() {
+        if (tts != null) {
+            tts.stop();
+        }
+    }
+
+    /**
      * shutdown 함수
      * TTS 사용 종료 후 리소스 해제 메서드
      * Activity 종료 시 호출 권장
