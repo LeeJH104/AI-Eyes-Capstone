@@ -1,0 +1,61 @@
+---
+1. 전체흐름
+---
+1. StartNavigationPreparation  → "경로 준비 중..."
+2. RouteSearching              → "경로 검색 중..."
+3. RouteDataParsing            → "경로 분석 중..."
+4. AligningDirection           → "휴대폰을 오른쪽으로 돌려주세요"
+5. GuidingNavigation           → "10미터 앞에서 좌회전"
+6. NavigationFinished          → "목적지 도착!"
+
+---
+2. 흐름
+
+1단계: StartNavigationPreparation (준비)
+    RouteSearching 상태로 이동
+
+
+2단계: RouteSearching (경로 검색)
+    현재 + 목적지 좌표로 API Req를 보내서
+    경로 데이터(geoJson)으로 가져옴
+    stateViewModel.routeJsonData에 저장
+
+
+3단계: RouteDataParsing (경로 파싱)
+    json을 gson으로 코틀린 객체로 바꾸고
+    받은 경로데이터를 point와 lineString으로 분리후 인덱스 순으로
+    sort한후 stateViewModel에 저장
+    (변수명: routePointFeatures,routeLineFeatures)
+    AligningDirection 상태로 이동
+
+
+4단계: AligningDirection (방향 맞추기)
+    startCompassTracking(): 나침반 시작 방향 변화 감지하면 stateViewModel.currentAzimuth에 업데이트됨
+    startAlignmentLoop() - 방향 체크 반복
+    alignDirectionToFirstPoint() - 실제 방향 체크
+
+5단계: GuidingNavigation (실제 안내)
+  viewModel.stopAlignmentLoop()        // 방향 맞추기 중지
+  viewModel.startGuidanceLoop(500L)    // 안내 시작
+
+  guideTowardNextPoint() - 방향 계속 체크
+
+
+  startTrackingLocation() tracking을 계속해줌
+  이 액티비티에서 실행되고 있기 때문에
+  목적지에 다오면 안내를 종료
+
+
+
+
+
+
+
+
+
+
+
+---
+
+
+

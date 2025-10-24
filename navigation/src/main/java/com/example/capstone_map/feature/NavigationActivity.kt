@@ -4,10 +4,10 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.appcompat.app.AppCompatActivity
-import com.example.capstone_map.common.input.NavigationInputBinder
 import com.example.capstone_map.feature.destination.state.AwaitingDestinationInput
 import com.example.capstone_map.common.permission.PermissionHelper
 import com.example.capstone_map.common.di.NavigationAssembler
+import com.example.capstone_map.common.input.NavigationGestureBinder
 import com.example.capstone_map.common.map.TMapInitializer
 import com.example.capstone_map.common.permission.micAndGpsPermissions
 import com.example.capstone_map.common.permission.registerMicAndGpsPermissionLauncher
@@ -33,16 +33,20 @@ class NavigationActivity : AppCompatActivity() {
     lateinit var multiPermissionLauncher: ActivityResultLauncher<Array<String>>
     private lateinit var binding: ActivityNavigationBinding
 
+
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        //1. 화면 바인딩
         binding = ActivityNavigationBinding.inflate(layoutInflater)
         setContentView(binding.root)
         //setContentView(R.layout.activity_main)
 
 
-        //tmap 초기화
-//        val tmapContainer: LinearLayout = findViewById(R.id.linearLayoutTmap)
+        //2. tmap 초기화
+
         tMapView = TMapInitializer.setupTMapView(this, binding.linearLayoutTmap)
 
         tMapView?.apply {
@@ -51,23 +55,24 @@ class NavigationActivity : AppCompatActivity() {
             setZoomLevel(17)          // (선택) 적당한 확대 레벨
         }
 
+        // 3.  mapdisplayer 만들기 -> tmap에 경로 시각화
         val displayer = MapRouteDisplayer(tMapView!!)
 
 
-
-//        tMapView = TMapInitializer.setupTMapView(this, tmapContainer)
-
-        // 어셈블러 및 뷰모델 초기화
+        //4. 어셈블러 생성 + StateViewModel(sharedViewmodel)에서 route 위치값을 주시하고있다가
+        // 바뀌면 point들을 가지고 tmap에 경로 그려주는 함수 실행
         assembler = NavigationAssembler(this, this)
-        assembler.stateViewModel.routePointFeatures.observe(this) { points ->
+
+        val stateVM = assembler.sharedNavigationViewModel
+        stateVM.routePointFeatures.observe(this) { points ->
             if (!points.isNullOrEmpty()) {
                 displayer.displayFromPointFeatures(points)
             }
         }
         destinationViewModel = assembler.destinationViewModel
 
-        val stateVM = assembler.stateViewModel
-        // 현재 위치가 바뀔 때마다 지도 업데이트
+
+        // 5. sharedViewModel에서 현재 위치가 바뀔 때마다 지도 업데이트
         stateVM.currentLocation.observe(this) { loc ->
             // ⚠️ TMap은 보통 (lon, lat) 순서
             tMapView?.setLocationPoint(loc.longitude, loc.latitude)
@@ -79,7 +84,9 @@ class NavigationActivity : AppCompatActivity() {
             }
         }
 
-        // (선택) 네비 상태에 따라 지도 트래킹 on/off
+
+
+        // 6.(선택) 네비 상태에 따라 지도 트래킹 on/off
         stateVM.navState.observe(this) { state ->
             val trackingOn = state is com.example.capstone_map.feature.navigation.state.AligningDirection ||
                     state is com.example.capstone_map.feature.navigation.state.GuidingNavigation
@@ -87,7 +94,7 @@ class NavigationActivity : AppCompatActivity() {
         }
 
 
-        // 권한 런처 등록 및 요청
+        // 7. 권한 런처 등록 및 요청
         //간단하게처리
         multiPermissionLauncher = registerMicAndGpsPermissionLauncher { micGranted, gpsGranted ->
             if (micGranted && gpsGranted) {
@@ -103,7 +110,7 @@ class NavigationActivity : AppCompatActivity() {
 
 
         // 현재 state textview에 적기
-        val stateViewModel = assembler.stateViewModel
+        val stateViewModel = assembler.sharedNavigationViewModel
         stateViewModel.navState.observe(this) { state ->
             renderNavigationState(binding.resultText, state)
         }
@@ -117,21 +124,23 @@ class NavigationActivity : AppCompatActivity() {
         ttsManager = assembler.ttsManager
         sttManager = assembler.sttManager
 
+
+        //1. naviViewmodel을 가져와서 gps추적 시작
         val navViewModel = assembler.getViewModel(NavigationViewModel::class)
         navViewModel.startTrackingLocation()
 
 
+        // 2.  DestinationVM 의 상태를 AwaitingDestinationInput 으로 변경 -> VM순환의 시작
         destinationViewModel.updateState(AwaitingDestinationInput)
 
-        NavigationInputBinder(
+        // 3.제스처 스와이프로 바인더 연결 (오른쪽=primary, 왼쪽=secondary, 아래=tertiary)
+        NavigationGestureBinder(
             activity = this,
+            targetView = binding.gestureOverlay, // 전체 화면에 제스처 적용 (원하면 특정 뷰로 교체 가능)
+            stateProvider = { assembler.sharedNavigationViewModel.navState.value },
             desViewModel = assembler.destinationViewModel,
             poiViewModel = assembler.poiSearchViewModel,
-            navViewModel = assembler.navigationViewModel,
-            stateProvider = { assembler.stateViewModel.navState.value },
-            primary = binding.gesture1,
-            secondary = binding.gesture2,
-            tertiary = binding.gesture3
+            navViewModel = assembler.navigationViewModel
         )
     }
 

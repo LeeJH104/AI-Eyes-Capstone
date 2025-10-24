@@ -1,10 +1,9 @@
 package com.example.capstone_map.feature.navigation.viewmodel
-
-
-
 import android.content.Context
 import android.location.Location
+import android.os.Build
 import android.os.Looper
+import android.os.Vibrator
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -17,16 +16,10 @@ import com.example.capstone_map.common.route.FeatureCollection
 import com.example.capstone_map.common.route.Geometry
 import com.example.capstone_map.common.route.JsonCallback
 import com.example.capstone_map.common.route.RouteCacheManager
-import com.example.capstone_map.common.viewmodel.SharedNavigationViewModel
+import com.example.capstone_map.common.sharedVM.SharedNavigationViewModel
 import com.example.capstone_map.common.voice.STTManager
 import com.example.capstone_map.common.voice.TTSManager
 import com.example.capstone_map.feature.navigation.GeometryDeserializer
-import com.example.capstone_map.feature.navigation.SafeDoubleAdapterNullable
-import com.example.capstone_map.feature.navigation.SafeDoubleAdapterPrimitive
-import com.example.capstone_map.feature.navigation.SafeIntAdapterNullable
-import com.example.capstone_map.feature.navigation.SafeIntAdapterPrimitive
-import com.example.capstone_map.feature.navigation.SafeLongAdapterNullable
-import com.example.capstone_map.feature.navigation.SafeLongAdapterPrimitive
 import com.example.capstone_map.feature.navigation.sensor.NewCompassManager
 import com.example.capstone_map.feature.navigation.state.AligningDirection
 import com.example.capstone_map.feature.navigation.state.GuidingNavigation
@@ -35,7 +28,6 @@ import com.example.capstone_map.feature.navigation.state.NavigationFinished
 import com.example.capstone_map.feature.navigation.state.NavigationState
 import com.example.capstone_map.feature.navigation.state.RouteDataParsing
 import com.example.capstone_map.feature.navigation.state.RouteSearching
-import com.example.capstone_map.feature.navigation.state.StartNavigationPreparation
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import kotlinx.coroutines.Dispatchers
@@ -44,10 +36,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import java.util.Timer
-import java.util.TimerTask
-import kotlin.math.abs
-import kotlin.math.min
+
+
+import android.os.VibrationEffect
+
+import android.os.VibratorManager
+import kotlin.math.sqrt
 
 
 class NavigationViewModel(
@@ -59,11 +53,20 @@ class NavigationViewModel(
 
 
 
-
 ) : ViewModel() {
 
 
     @Volatile private var isSpeaking = false
+
+    private var lastDirection: String? = null  // "오른쪽" or "왼쪽"
+
+    // 완료 관련
+    private var isAlignmentCompleted = false
+    private var alignmentStableCount = 0
+    private val REQUIRED_STABLE_CHECKS = 3  // 0.15초 × 3 = 0.45초
+
+
+
 
     private var locationTracker: LocationTracker? = null
     private var isTrackingLocation = false // 현재 추적 중인지 상태 저장
@@ -72,6 +75,19 @@ class NavigationViewModel(
     private var currentIndex = 0
     private var lastSpokenIndex = -1 // 중복 안내 방지용
     // private val compassManager = CompassManager(context)
+
+    //  안전한 Vibrator 초기화
+    private val vibrator: Vibrator by lazy {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vibratorManager = context.getSystemService(VibratorManager::class.java)
+            vibratorManager.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            context.getSystemService(Vibrator::class.java)
+        }
+    }
+
+
 
     private val compassManager = NewCompassManager(context) { deg ->
         // 각도 변화 임계값 필터(선택)
@@ -242,10 +258,12 @@ class NavigationViewModel(
     }
 
 
-    /**   첫 포인트와 방향 일치 여부 검사 함수*/
+    /**   첫 포인트와 방향 일치 여부 검사 함수
+     *
+     *
+     * */
 
-
-    fun alignDirectionToFirstPoint() {
+    fun checkAndGuideDirectionAlignment() {
         val azimuth = stateViewModel.currentAzimuth.value ?: return
         val curr    = stateViewModel.currentLocation.value ?: return
 
@@ -258,13 +276,61 @@ class NavigationViewModel(
         val absDiff = kotlin.math.abs(diff)
         val threshold = 20f
 
-        if (absDiff > threshold) {
-            val dir = if (diff > 0) "오른쪽" else "왼쪽"
-            speak("휴대폰을 $dir 으로 돌려주세요")
-        } else {
-            speak("방향이 맞춰졌습니다. 안내를 시작합니다.") {
-                updateState(GuidingNavigation)
+
+        // 문제4 완료 후 재검증
+
+
+        if (absDiff > threshold) { //방향이 아직 달라
+            alignmentStableCount = 0  // 카운터 리셋
+
+            val currentDirection = if (diff > 0) "오른쪽" else "왼쪽"
+
+            //  진동으로 거리 피드백
+            val vibrationDuration = when {
+                absDiff > 90f -> 50L    // 매우 틀림: 매우 약함
+                absDiff > 60f -> 100L   // 많이 틀림: 약함
+                absDiff > 40f -> 150L   // 중간: 중약
+                absDiff > 25f -> 250L   // 조금 틀림: 중간
+                else -> 350L            // 거의 맞음: 강함 (10~25도)
             }
+
+            vibrate(vibrationDuration)
+
+
+            if (currentDirection != lastDirection) {
+                // 방향 변경 감지 → 즉시 알림
+                forceSpeak(" $currentDirection 으로")
+                lastDirection = currentDirection  //  현재 방향 저장
+            } else {
+                // 같은 방향 + 말 안 하는 중 → 알림
+                speak(" $currentDirection 으로 ")
+                // lastDirection은 이미 currentDirection과 같으므로 업데이트 불필요
+            }
+
+        // else: 같은 방향
+        } else {
+
+
+
+            //문제 4번  카운트
+            alignmentStableCount++
+            // 카운트증가
+
+
+            if (alignmentStableCount >= REQUIRED_STABLE_CHECKS) {
+
+                isAlignmentCompleted = true //정렬 완료 -> 정렬된 상태에서 forceSpeak그만
+
+                // 완료 패턴
+                vibratePattern(longArrayOf(0, 300, 150, 300, 150, 300))
+
+                forceSpeak("정렬 완료") {
+                    updateState(GuidingNavigation)
+                }
+                alignmentStableCount = 0
+                lastDirection = null
+            }
+
         }
 
 
@@ -280,27 +346,27 @@ class NavigationViewModel(
         if (locationTracker == null) {
             locationTracker = LocationTracker(context, object : LocationUpdateCallback {
                 override fun onLocationChanged(location: Location) {
-                    Log.d("TRACKING", "📡 위치 갱신됨 → ${location.latitude}, ${location.longitude}")
+                    Log.d("TRACKING", " 위치 갱신됨 → ${location.latitude}, ${location.longitude}")
                     stateViewModel.currentLocation.postValue(location)
                     checkAndSpeakNextPoint(location)
                 }
 
                 override fun onLocationAccuracyChanged(accuracy: Float) {
-                    Log.d("TRACKING", "📶 정확도 변경됨 → $accuracy")
+                    Log.d("TRACKING", " 정확도 변경됨 → $accuracy")
                 }
 
                 override fun onGPSSignalWeak() {
-                    Log.w("TRACKING", "⚠️ GPS 신호 약함")
+                    Log.w("TRACKING", "️ GPS 신호 약함")
                 }
 
                 override fun onGPSSignalRestored() {
-                    Log.d("TRACKING", "✅ GPS 신호 정상 복구")
+                    Log.d("TRACKING", " GPS 신호 정상 복구")
                 }
             })
         }
 
         locationTracker?.startTracking()
-        Log.i("TRACKING", "🟢 위치 추적 시작됨")
+        Log.i("TRACKING", " 위치 추적 시작됨")
     }
 
 
@@ -332,11 +398,12 @@ class NavigationViewModel(
     }
 
 
+
     private fun checkAndSpeakNextPoint(location: Location) {
         val pointFeatures = stateViewModel.routePointFeatures.value ?: return
         val lastPointIndex = pointFeatures.maxOfOrNull { it.properties.pointIndex ?: -1 } ?: return
 
-        Log.d("NAVIGATION", "📍 현재 위치: (${location.latitude}, ${location.longitude})")
+        Log.d("NAVIGATION", " 현재 위치: (${location.latitude}, ${location.longitude})")
 
         for (feature in pointFeatures) {
             val index = feature.properties.pointIndex ?: continue
@@ -359,17 +426,17 @@ class NavigationViewModel(
             val distance = location.distanceTo(targetLocation)
             Log.d("NAVIGATION", "index $index 도착지까지 거리: ${"%.2f".format(distance)}m")
 
-            if (distance < 15f) {
+            if (distance < 10f) {
                 val description = feature.properties.description
                 if (!description.isNullOrBlank()) {
-                    Log.i("NAVIGATION", "🗣️ 안내 시작: $description")
+                    Log.i("NAVIGATION", " 안내 시작: $description" + isSpeaking)
                     lastSpokenIndex = index
 
                     speak(description) {
                         Log.i("NAVIGATION", " 안내 완료: index $index")
                         //lastSpokenIndex = index
 
-                        // 🟡 도착 지점인지 확인
+                        //  도착 지점인지 확인
                         if (index == lastPointIndex) {
                             handleArrival()
                         }
@@ -386,29 +453,52 @@ class NavigationViewModel(
 
 
     fun speak(text: String, onDone: (() -> Unit)? = null) { //함수 넘겨도되고 안 넘겨도돼
+
+        Log.d("TTS", "speak() 호출: \"$text\"")
+        Log.d("TTS", "isSpeaking = $isSpeaking")
+
+        if (isSpeaking) return  // ← 말중이면 return
+
+        isSpeaking = true
         ttsManager.speak(text, object : TTSManager.OnSpeakCallback {
             override fun onStart() {}
             override fun onDone() {
+                isSpeaking = false
                 onDone?.invoke()
+            }
+            override fun onError() {
+                isSpeaking = false
             }
         })
     }
 
+    // 강제 발화 (isSpeaking 체크 없음!)
+    private fun forceSpeak(text: String, onComplete: (() -> Unit)? = null) {
+        ttsManager.stop()  // 기존 중단
+        isSpeaking = false  // 플래그 초기화
+
+        // 새로 시작 (speak() 호출하면 이제 통과됨)
+        speak(text, onComplete)
+    }
+
 
     private fun handleArrival() {
-        Log.i("NAVIGATION", "🏁 목적지 도착 처리 시작")
+        Log.i("NAVIGATION", " 목적지 도착 처리 시작")
         speak("목적지에 도착했습니다. 안내를 종료합니다.") {
             updateState(NavigationFinished)
         }
     }
 
 
+
+
     fun startAlignmentLoop(intervalMs: Long = 300L) {
         if (alignmentJob?.isActive == true) return
         alignmentJob = viewModelScope.launch(Dispatchers.Main) {
             while (isActive && navigationState.value is AligningDirection) {
-                alignDirectionToFirstPoint()   // ← 아래 함수가 말해줌
-                delay(intervalMs)
+                checkAndGuideDirectionAlignment()   // ← 아래 함수가 말해줌
+                delay(intervalMs) // delay는 왜있는가 -> 센서 갱신보다 빠른 Check는 의미없이
+                //리소스만 잡아먹기 때문
             }
         }
     }
@@ -427,6 +517,7 @@ class NavigationViewModel(
 
     fun startGuidanceLoop(intervalMs: Long = 500L) {
         if (guidanceJob?.isActive == true) return
+
         guidanceJob = viewModelScope.launch(Dispatchers.Main) {
             while (isActive && navigationState.value is GuidingNavigation) {
                 guideTowardNextPoint()   // 다음 포인트 기준으로 헤딩 체크/안내
@@ -500,6 +591,79 @@ class NavigationViewModel(
                 val loc = toLocation(p)
                 curr.distanceTo(loc) >= minDistM
             }
+    }
+
+
+
+    private fun vibrate(duration: Long) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(
+                VibrationEffect.createOneShot(duration, VibrationEffect.DEFAULT_AMPLITUDE)
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(duration)
+        }
+    }
+
+    private fun vibratePattern(pattern: LongArray) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createWaveform(pattern, -1))
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(pattern, -1)
+        }
+    }
+
+
+
+
+
+    class KalmanLatLong(private val qMetresPerSecond: Float) {
+
+        private val minAccuracy = 1f
+        private var timeStampMillis: Long = 0
+        private var lat: Double = 0.0
+        private var lng: Double = 0.0
+        private var variance: Float = -1f
+
+        val latitude: Double get() = lat
+        val longitude: Double get() = lng
+        val accuracy: Float get() = sqrt(variance)
+
+        fun setState(lat: Double, lng: Double, accuracy: Float, timeStamp: Long) {
+            this.lat = lat
+            this.lng = lng
+            this.variance = maxOf(accuracy, minAccuracy) * maxOf(accuracy, minAccuracy)
+            this.timeStampMillis = timeStamp
+        }
+
+        fun process(latMeasurement: Double, lngMeasurement: Double, accuracy: Float, timeStamp: Long) {
+            val accuracyClamped = maxOf(accuracy, minAccuracy)
+
+            if (variance < 0) {
+                // 초기화
+                setState(latMeasurement, lngMeasurement, accuracyClamped, timeStamp)
+                return
+            }
+
+            val timeInc = timeStamp - timeStampMillis
+            if (timeInc > 0) {
+                // 시간에 따른 불확실성 증가
+                variance += timeInc * qMetresPerSecond * qMetresPerSecond / 1000f
+                timeStampMillis = timeStamp
+            }
+
+            // Kalman gain
+            val k = variance / (variance + accuracyClamped * accuracyClamped)
+
+            // 업데이트
+            lat += k * (latMeasurement - lat)
+            lng += k * (lngMeasurement - lng)
+
+            // 공분산 업데이트
+            variance = (1 - k) * variance
+        }
     }
 
 

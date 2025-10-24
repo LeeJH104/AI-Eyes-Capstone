@@ -223,11 +223,16 @@ public class MapRouteDisplayer {
 
 
 
-    public void displayFromPointFeatures(java.util.List<Feature> pointFeatures) {
-        clearRoute();
-        if (pointFeatures == null || pointFeatures.isEmpty()) return;
+    /**
+     * @param pointFeatures 경로를 표시할 Feature 리스트
+     *                      point features를 주면 알아서 line을 만들고 tmap에 시각화해주는 기능
+     * */
 
-        // pointIndex 오름차순 정렬
+    public void displayFromPointFeatures(java.util.List<Feature> pointFeatures) {
+        clearRoute();//1. 기존선 마커 지우고
+        if (pointFeatures == null || pointFeatures.isEmpty()) return; //2.예외처리
+
+        // 3.pointIndex기준 오름차순 정렬
         Collections.sort(pointFeatures, new Comparator<Feature>() {
             @Override public int compare(Feature a, Feature b) {
                 Integer ia = a.getProperties().getPointIndex();
@@ -238,13 +243,19 @@ public class MapRouteDisplayer {
             }
         });
 
-        // 폴리라인 작성
+
+
+        // 4.폴리라인 인스턴스 생성
         TMapPolyLine poly = new TMapPolyLine();
         poly.setLineColor(DEFAULT_ROUTE_COLOR);
         poly.setLineWidth(DEFAULT_ROUTE_WIDTH);
 
         TMapPoint startPt = null, endPt = null;
 
+
+        //5. 포인트 순회 및 선 만들기
+        //각 Feature의 좌표가 Point면 → TMapPoint(lat, lon)으로 변환해 선에 추가.
+        //pointType이 "SP"면 시작점, "EP"면 끝점으로 기억.
         for (Feature f : pointFeatures) {
             Coordinates coords = f.getGeometry().getCoordinates();
             if (coords instanceof Coordinates.Point) {
@@ -258,9 +269,20 @@ public class MapRouteDisplayer {
             }
         }
 
+
+
+
+        //6.지도에 선 올리기
+
+
+
         tMapView.addTMapPolyLine(ROUTE_LINE_ID, poly);
 
-        // 출발/도착 마커
+        //        마커 & 화면 맞춤
+        //        시작·끝 둘 다 있으면:
+        //        addStartEndMarkers(...)로 출발/도착 마커 추가
+        //        adjustMapBounds(...)로 지도 중앙/줌 자동 조정
+
         if (startPt != null && endPt != null) {
             addStartEndMarkers(startPt.getLongitude(), startPt.getLatitude(), "출발",
                     endPt.getLongitude(),   endPt.getLatitude(),   "도착");

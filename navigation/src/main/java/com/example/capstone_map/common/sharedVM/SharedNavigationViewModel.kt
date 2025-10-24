@@ -1,4 +1,4 @@
-    package com.example.capstone_map.common.viewmodel
+    package com.example.capstone_map.common.sharedVM
 
     import android.location.Location
     import android.util.Log
@@ -14,9 +14,12 @@
 
 
         //val = 개념 핵심: val은 참조(주소)를 바꿀 수 없다는 뜻
-        val geoJsonData = MutableLiveData<String>() //
+        val geoJsonData = MutableLiveData<String>()
         val currentLocation = MutableLiveData<Location>()  // 현재위치를 저장하는 변수
-        val navState = MutableLiveData<BaseState<*>>() // 혹은 BaseState<out ViewModel>
+        val navState = MutableLiveData<BaseState<*>>() // 혹은 BaseState<out ViewModel> //현재 상태를 담는 변수
+
+
+        //사용자가 입력한 destination text
         val destinationText = MutableLiveData<String>()
         // POI 후보 리스트
         val poiList = MutableLiveData<List<Poi>>()
@@ -29,7 +32,6 @@
         //navigation
         // (길안내 )보행자 경로 JSON 값 = 현재는 String
         val routeJsonData = MutableLiveData<String>()
-
         val routePointFeatures = MutableLiveData<List<Feature>>()  // Point 타입
         val routeLineFeatures = MutableLiveData<List<Feature>>()   // LineString 타입
 
