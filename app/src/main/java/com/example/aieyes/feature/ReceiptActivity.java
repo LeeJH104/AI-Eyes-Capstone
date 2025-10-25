@@ -59,7 +59,8 @@ import okhttp3.Response;
 public class ReceiptActivity extends AppCompatActivity {
 
     private static final String TAG = "ReceiptActivity";
-    private static final String SERVER_URL = "http://192.168.0.215:5000/api/receipt/process-receipt";
+    // private static final String SERVER_URL = "http://192.168.0.215:5000/api/receipt/process-receipt";
+    private static final String SERVER_URL = "https://7363a41dee78.ngrok-free.app/api/receipt/process-receipt";
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 101;
     private static final int AUDIO_PERMISSION_REQUEST_CODE = 102;
 

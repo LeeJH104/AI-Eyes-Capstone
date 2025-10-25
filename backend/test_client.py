@@ -8,8 +8,8 @@ import requests
 import os
 
 # --- 서버 주소 설정 ---
-SERVER_URL = "http://192.168.0.215:5000/api/receipt/process-receipt"
-
+# SERVER_URL = "http://192.168.0.215:5000/api/receipt/process-receipt"
+SERVER_URL = "https://7363a41dee78.ngrok-free.app/api/receipt/process-receipt"
 # 테스트용 이미지 경로
 IMAGE_PATH = os.path.join(os.path.dirname(__file__), 'test_data', '영수증 이미지 1.jpg')
 
