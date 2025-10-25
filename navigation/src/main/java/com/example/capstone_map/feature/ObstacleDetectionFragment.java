@@ -65,7 +65,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ObstacleDetectionFragment extends Fragment implements ObjectDetectorHelper.DetectorListener {
 
-    private static final String TAG = "ObstacleFragmentJava"; // 로그 태그
+    private static final String TAG = "ObstacleFragmentJava";
     private SoundPool soundPool;
     private int detectionSoundId;
     private final String UTTERANCE_ID = "ai_eyes_utterance";
@@ -90,13 +90,11 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
-                    // ★ Activity 코드와 달리, View가 준비된 후 카메라를 시작하는 안전한 방식 유지
                     if (previewView != null) {
                         previewView.post(this::startCamera);
                     }
                 } else {
                     Toast.makeText(requireContext(), "카메라 권한이 필요합니다.", Toast.LENGTH_SHORT).show();
-                    // ★ Activity의 finish() 호출은 Fragment에 적합하지 않으므로 제거
                 }
             });
 
@@ -105,7 +103,6 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
         super.onCreate(savedInstanceState);
 
         cameraExecutor = Executors.newSingleThreadExecutor();
-        // ★ this -> requireContext()
         objectDetectorHelper = new ObjectDetectorHelper(requireContext(), "1.tflite", 0.5f, 2, 5, this);
 
         setupNetwork();
@@ -116,7 +113,6 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        // ★ R.layout.fragment_obstacle 유지
         return inflater.inflate(R.layout.fragment_obstacle, container, false);
     }
 
@@ -124,22 +120,17 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // ★★★★★ View ID를 ObstacleActivity 코드 기준으로 변경 ★★★★★
-        // (fragment_obstacle.xml의 ID도 일치시켜야 함)
         previewView = view.findViewById(R.id.obstaclePreviewView);
         txtResult = view.findViewById(R.id.obstacleTxtResult);
         btnToggleAnalysis = view.findViewById(R.id.obstacleBtnToggleAnalysis);
         progressBar = view.findViewById(R.id.obstacleProgressBar);
-        // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 
         btnToggleAnalysis.setOnClickListener(v -> toggleAnalysis());
 
-        // View가 완전히 배치된 후 카메라 권한 확인/시작
         previewView.post(() -> {
             checkCameraPermission();
         });
 
-        // UI 초기 상태 설정
         resetState();
     }
 
@@ -165,11 +156,9 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
         }
     }
 
-    // ★★★★★ startCamera 로직을 ObstacleActivity 기준으로 대폭 수정 ★★★★★
     @OptIn(markerClass = ExperimentalCamera2Interop.class)
     private void startCamera() {
         Log.d(TAG, "startCamera() called");
-        // ★ this -> requireContext()
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext());
         cameraProviderFuture.addListener(() -> {
             Log.d(TAG, "CameraProvider future listener entered");
@@ -185,26 +174,21 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
                 }
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
-                // ★ Activity 코드처럼 광각 카메라 우선 탐색
                 CameraSelector cameraSelector = getWideAngleCameraSelector(cameraProvider);
                 if (cameraSelector == null) {
                     cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
                 }
 
-                // ★ Activity 코드의 ImageAnalysis 설정 적용 (RGBA_8888)
                 ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
                         .setTargetResolution(new Size(640, 480)) // 분석용 해상도
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                        .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888) // ★ 포맷 변경
+                        .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
                         .build();
 
-                // ★ Activity 코드의 Analyzer 로직 적용 (copyPixelsFromBuffer)
                 imageAnalysis.setAnalyzer(cameraExecutor, imageProxy -> {
                     if (bitmapBuffer == null) {
-                        // 비트맵 버퍼 초기화
                         bitmapBuffer = Bitmap.createBitmap(imageProxy.getWidth(), imageProxy.getHeight(), Bitmap.Config.ARGB_8888);
                     }
-                    // RGBA 버퍼에서 비트맵으로 픽셀 복사 (toBitmap()보다 빠름)
                     bitmapBuffer.copyPixelsFromBuffer(imageProxy.getPlanes()[0].getBuffer());
 
                     int imageRotation = imageProxy.getImageInfo().getRotationDegrees();
@@ -213,14 +197,12 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
                         objectDetectorHelper.detect(bitmapBuffer, imageRotation);
                     }
 
-                    // ★★★ 매우 중요: 처리가 끝나면 imageProxy를 닫아야 함
                     imageProxy.close();
                 });
 
                 cameraProvider.unbindAll();
                 Log.d(TAG, "Attempting to bindToLifecycle (Preview + Analysis)...");
 
-                // ★ this (LifecycleOwner) -> getViewLifecycleOwner()
                 cameraProvider.bindToLifecycle(getViewLifecycleOwner(), cameraSelector, preview, imageAnalysis);
 
                 Log.d(TAG, "bindToLifecycle (Preview + Analysis) successful!");
@@ -232,13 +214,10 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
             } catch (Exception e) {
                 Log.e(TAG, "Unknown error starting camera", e);
             }
-            // ★ this -> requireContext()
         }, ContextCompat.getMainExecutor(requireContext()));
     }
-    // ★★★★★ startCamera 수정 완료 ★★★★★
 
 
-    // ★ (ObstacleActivity와 동일한) 광각 카메라 선택 로직
     @ExperimentalCamera2Interop
     @SuppressWarnings("deprecation")
     private CameraSelector getWideAngleCameraSelector(ProcessCameraProvider cameraProvider) {
@@ -265,7 +244,6 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
                 }
             }
         } catch (Exception e) {
-            // ★ 로그 태그 통일
             Log.e(TAG, "Failed to get camera characteristics.", e);
         }
         return wideAngleCameraSelector;
@@ -273,11 +251,9 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
 
     @Override
     public void onResults(List<Detection> results, long inferenceTime) {
-        // ★ Activity 코드의 progressBar 체크 방식 적용 및 Fragment의 null 체크 보강
         if (progressBar == null || progressBar.getVisibility() == View.VISIBLE || !isContinuousAnalysis) return;
 
         boolean shouldCallCloudApi = false;
-        // ★ Fragment의 results null 체크 유지 (안정성)
         if (results != null) {
             for (Detection detection : results) {
                 String label = detection.getCategories().get(0).getLabel();
@@ -293,7 +269,6 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
             if (soundPool != null) {
                 soundPool.play(detectionSoundId, 1, 1, 1, 0, 1.0f);
             }
-            // ★ runOnUiThread -> if (isAdded()) { requireActivity().runOnUiThread(...) }
             if (isAdded()) {
                 requireActivity().runOnUiThread(() -> {
                     if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
@@ -307,7 +282,6 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
 
     @Override
     public void onError(String error) {
-        // ★ runOnUiThread -> if (isAdded()) { requireActivity().runOnUiThread(...) }
         if (isAdded()) {
             requireActivity().runOnUiThread(() -> Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show());
         }
@@ -320,7 +294,6 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
 
         if (api == null) {
             Log.e(TAG, "API client is null.");
-            // ★ Fragment의 안정성 코드 유지
             if (isAdded()) requireActivity().runOnUiThread(() -> resetState());
             return;
         }
@@ -328,12 +301,10 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
         api.sendImage(json).enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(@NonNull Call<JsonObject> call, @NonNull Response<JsonObject> response) {
-                // ★ Fragment의 isAdded() 체크 유지
                 if (!isAdded()) return;
 
                 if (response.isSuccessful() && response.body() != null) {
                     String resultText = response.body().get("result").getAsString();
-                    // ★ runOnUiThread -> requireActivity().runOnUiThread(...)
                     requireActivity().runOnUiThread(() -> {
                         if (txtResult != null) txtResult.setText(resultText);
                     });
@@ -343,7 +314,6 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
                         tts.speak(resultText, TextToSpeech.QUEUE_FLUSH, params, UTTERANCE_ID);
                     }
                 } else {
-                    // ★★★★★★★★★★★★★★ 수정 지점 1 ★★★★★★★★★★★★★★
                     Log.e(TAG, "API Response Not Successful. Code: " + response.code());
                     try {
                         if (response.errorBody() != null) {
@@ -353,68 +323,52 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
                         Log.e(TAG, "Error reading errorBody: " + e.getMessage());
                     }
 
-                    // UI 스레드에서 상태 변경
                     requireActivity().runOnUiThread(() -> {
-                        // 1. 사용자에게 오류 알림
                         if (tts != null) {
                             tts.speak("서버 오류가 발생하여 분석을 중지합니다.", TextToSpeech.QUEUE_FLUSH, null, null);
                         }
 
-                        // 2. 연속 분석 플래그를 false로 변경 (루프 중단!)
                         isContinuousAnalysis = false;
 
-                        // 3. 버튼 텍스트 복구
                         if (btnToggleAnalysis != null) {
                             btnToggleAnalysis.setText("분석 시작");
                         }
 
-                        // 4. 상태 리셋 (이때 isContinuousAnalysis가 false이므로 "분석을 시작..." 문구가 나옴)
                         resetState();
 
-                        // 5. 텍스트를 오류 메시지로 덮어쓰기
                         if (txtResult != null) {
                             txtResult.setText("서버 오류 발생 (Code: " + response.code() + ")");
                         }
                     });
-                    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<JsonObject> call, @NonNull Throwable t) {
-                // ★ Fragment의 isAdded() 체크 유지
                 if (!isAdded()) return;
                 Log.e("RetrofitError", "Cloud API 통신 실패", t);
-                // ★★★★★★★★★★★★★★ 수정 지점 2 ★★★★★★★★★★★★★★
                 requireActivity().runOnUiThread(() -> {
-                    // 1. 사용자에게 오류 알림
                     if (tts != null) {
                         tts.speak("네트워크 오류가 발생하여 분석을 중지합니다.", TextToSpeech.QUEUE_FLUSH, null, null);
                     }
 
-                    // 2. 연속 분석 플래그를 false로 변경 (루프 중단!)
                     isContinuousAnalysis = false;
 
-                    // 3. 버튼 텍스트 복구
                     if (btnToggleAnalysis != null) {
                         btnToggleAnalysis.setText("분석 시작");
                     }
 
-                    // 4. 상태 리셋
                     resetState();
 
-                    // 5. 텍스트를 오류 메시지로 덮어쓰기
                     if (txtResult != null) {
                         txtResult.setText("네트워크 연결 실패");
                     }
                 });
-                // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
             }
         });
     }
 
     private void setupTTS() {
-        // ★ this -> requireContext()
         tts = new TextToSpeech(requireContext(), status -> {
             if (status == TextToSpeech.SUCCESS) {
                 tts.setLanguage(Locale.KOREAN);
@@ -425,14 +379,12 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
                     @Override
                     public void onDone(String utteranceId) {
                         if (UTTERANCE_ID.equals(utteranceId)) {
-                            // ★ runOnUiThread -> if (isAdded()) { requireActivity().runOnUiThread(...) }
                             if (isAdded()) requireActivity().runOnUiThread(() -> resetState());
                         }
                     }
 
                     @Override
                     public void onError(String utteranceId) {
-                        // ★ runOnUiThread -> if (isAdded()) { requireActivity().runOnUiThread(...) }
                         if (isAdded()) requireActivity().runOnUiThread(() -> resetState());
                     }
                 });
@@ -449,11 +401,9 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
                 .setMaxStreams(1)
                 .setAudioAttributes(audioAttributes)
                 .build();
-        // ★ this -> requireContext(), R.raw.detection_sound 참조 유지
         detectionSoundId = soundPool.load(requireContext(), R.raw.detection_sound, 1);
     }
 
-    // ★ Activity 코드의 resetState 로직 적용
     private void resetState() {
         if (progressBar != null) progressBar.setVisibility(View.GONE);
         if (txtResult != null) {
@@ -466,7 +416,6 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
     }
 
     private String bitmapToBase64(Bitmap bitmap) {
-        // ★ 기존 Fragment의 null 체크 유지 (안정성)
         if (bitmap == null) return null;
         Bitmap resizedBitmap = getResizedBitmap(bitmap, 640);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -505,9 +454,6 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
         api = retrofit.create(UploadApi.class);
     }
 
-    // ★★★★★ Fragment 생명주기 메서드(onPause, onDestroyView, onDestroy)는 ★★★★★
-    // ★★★★★ 기존 Fragment의 것을 그대로 유지하는 것이 안정적입니다. ★★★★★
-
     @Override
     public void onPause() {
         super.onPause();
@@ -526,7 +472,6 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
     public void onDestroyView() {
         super.onDestroyView();
         Log.d(TAG, "onDestroyView");
-        // View 참조 해제
         previewView = null;
         txtResult = null;
         btnToggleAnalysis = null;
@@ -551,7 +496,6 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
             soundPool = null;
         }
         if (objectDetectorHelper != null) {
-            // objectDetectorHelper.close(); // Helper에 close 메서드가 있다면 호출
             objectDetectorHelper = null;
         }
         api = null;
