@@ -1,4 +1,4 @@
-package com.example.aieyes.ui;
+package com.example.aieyes.feature;
 
 import android.Manifest;
 import android.content.pm.PackageManager;

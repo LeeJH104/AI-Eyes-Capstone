@@ -5,8 +5,8 @@ AI 기반 시각장애인 보조 앱 개발 프로젝트입니다.
 음성 인식(STT), 음성 안내(TTS), 제스처 인식을 사용한 길안내, 영수증 인식, 장애물 탐지 기능을 제공합니다.
 
 ## 👥 Team Members
-- 이재훈 – 프로젝트 매니저 & 메인화면 개발
-- 이수창 – 네비게이션 기능
+- 이재훈 – 프로젝트 매니저 & 메인화면
+- 이수창 – 네비게이션
 - 김가람 – 영수증 인식
 - 송현호 – 장애물 탐지
 
@@ -17,14 +17,14 @@ AI 기반 시각장애인 보조 앱 개발 프로젝트입니다.
 - **장애물 탐지**: 카메라 기반 장애물 경고
 
 ## 🛠 개발 환경
-- Language: Java (Android)
-- Framework: Android Studio
+- Language: Java (Android), Python (AI)
+- Framework: Android Studio, Jupyter Notebook
 - Tools: TMAP API, OCR, Object Detection
 - Collaboration: GitHub
 
 ## 🧱 브랜치 전략
 - main: 최종 안정 버전
-- dev: 공통 코드 및 통합 테스트용
+- dev: 공통 코드 및 메인 화면
 - feature/nav, feature/receipt, feature/obstacle 등
 
 ## 📁 폴더 구조
@@ -32,7 +32,7 @@ AI 기반 시각장애인 보조 앱 개발 프로젝트입니다.
   
   com.example.aieyes/
   
-  ├── ui/   화면(Activity, Fragment)
+  ├── feature/   기능 및 화면(Activity, Fragment)
 
   │   ├── MainActivity.java
   
@@ -43,16 +43,6 @@ AI 기반 시각장애인 보조 앱 개발 프로젝트입니다.
   │   ├── ObstacleActivity.java
   
   │   └── ... (필요 시 Fragment 등)
-  
-  ├── service/  기능 처리
-  
-  │   ├── NavigationService.java
-  
-  │   ├── ReceiptOCRService.java
-  
-  │   ├── ObjectDetectionService.java
-  
-  │   └── ...
   
   ├── utils/    공통 유틸 (TTSManager 등)
   

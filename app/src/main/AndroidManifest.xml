@@ -26,7 +26,7 @@
         tools:targetApi="31">
 
         <activity
-            android:name=".ui.MainActivity"
+            android:name=".feature.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -35,10 +35,10 @@
         </activity>
 
         <activity
-            android:name=".ui.ObstacleActivity"
+            android:name=".feature.ObstacleActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.ReceiptActivity"
+            android:name=".feature.ReceiptActivity"
             android:exported="false" />
         <activity
             android:name="com.example.capstone_map.feature.NavigationActivity"

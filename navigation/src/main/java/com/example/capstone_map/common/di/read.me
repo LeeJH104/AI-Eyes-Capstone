@@ -1,0 +1,18 @@
+----
+1. 기능설명
+----
+1. sharedVM (모든 VM이 공유하는 데이터저장소) 생성
+2. STT, TTS ,LocationFetcher 생성
+3. VM제공자 생성 (Map 형태)
+4. VM제공자를 통해 VM 가져오기
+
+
+
+
+
+---
+2. 문법
+---
+
+private val _locationFetcher by lazy { LocationFetcher(...) }
+by lazy는 처음 접근하는 순간에 만들고 다음에 계속 재사용하게 만드는것

@@ -14,7 +14,7 @@ import com.example.capstone_map.feature.poisearch.state.StartingSearch
 import com.example.capstone_map.common.voice.STTManager
 import com.example.capstone_map.common.voice.TTSManager
 
-import com.example.capstone_map.common.viewmodel.SharedNavigationViewModel
+import com.example.capstone_map.common.sharedVM.SharedNavigationViewModel
 import com.example.capstone_map.feature.poisearch.viewmodel.POISearchViewModel
 
 class DestinationViewModel(
@@ -40,14 +40,11 @@ class DestinationViewModel(
             }
         })
     }
+
+
     fun getCurrentPOISearchState(): POISearchState? {
         return stateViewModel.navState.value as? POISearchState
     }
-
-    fun getTTSManager(): TTSManager = ttsManager
-    fun getSTTManager(): STTManager = sttManager
-
-
 
 
 
@@ -69,7 +66,7 @@ class DestinationViewModel(
             }
 
             override fun onError(errorMessage: String) {
-                speak("죄송합니다. 문제가 발생했습니다. 버튼 다시눌러주세요") { //(제스쳐 다시실행해주세요)
+                speak("죄송합니다. 문제가 발생했습니다.") { //(제스쳐 다시실행해주세요)
                     updateState(AwaitingDestinationInput)
                 }
             }
@@ -97,7 +94,7 @@ class DestinationViewModel(
 
 
     fun restartDestinationInput() {
-        updateState(AwaitingDestinationInput)
+        updateState(ListeningForDestination)
     }
 
 
