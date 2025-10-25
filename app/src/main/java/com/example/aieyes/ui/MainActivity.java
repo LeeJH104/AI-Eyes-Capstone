@@ -148,10 +148,14 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
-        super.onResume();
-        isSelected = false;
+    super.onResume();
+    // 다른 액티비티에서 돌아왔을 때, 다시 기능을 선택할 수 있도록 플래그를 초기화합니다.
+    isSelected = false;
 
-        if (isInitialized) {
+    // ▼▼▼ [수정된 부분 시작] ▼▼▼
+    // isInitialized가 true라는 것은 최초 실행이 아니라 다른 화면에서 돌아왔다는 의미입니다.
+    // 이 때 다시 안내 메시지를 재생하고 음성 인식을 시작하도록 호출합니다.
+    if (isInitialized) {
         Log.d("MainActivity", "onResume: 화면으로 복귀하여 안내 메시지 다시 시작");
         speakIntroAndListen();
     }
