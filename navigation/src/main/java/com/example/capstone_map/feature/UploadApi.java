@@ -1,4 +1,4 @@
-package com.example.aieyes.feature;
+package com.example.capstone_map.feature;
 
 import com.google.gson.JsonObject;
 import retrofit2.Call;

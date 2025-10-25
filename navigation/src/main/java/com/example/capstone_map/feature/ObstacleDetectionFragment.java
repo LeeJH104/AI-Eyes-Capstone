@@ -1,4 +1,4 @@
-package com.example.aieyes.feature;
+package com.example.capstone_map.feature; // ★ 패키지 이름 유지
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -13,7 +13,9 @@ import android.speech.tts.UtteranceProgressListener;
 import android.util.Base64;
 import android.util.Log;
 import android.util.Size;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -22,18 +24,21 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.Nullable;
+import androidx.annotation.OptIn;
 import androidx.camera.camera2.interop.Camera2CameraInfo;
 import androidx.camera.camera2.interop.ExperimentalCamera2Interop;
 import androidx.camera.core.CameraInfo;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageAnalysis;
+import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 
-import com.example.aieyes.R;
+import com.example.capstone_map.R; // ★ R 임포트 유지
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.JsonObject;
 
@@ -58,8 +63,9 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class ObstacleActivity extends AppCompatActivity implements ObjectDetectorHelper.DetectorListener {
+public class ObstacleDetectionFragment extends Fragment implements ObjectDetectorHelper.DetectorListener {
 
+    private static final String TAG = "ObstacleFragmentJava";
     private SoundPool soundPool;
     private int detectionSoundId;
     private final String UTTERANCE_ID = "ai_eyes_utterance";
@@ -68,6 +74,7 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
     private TextView txtResult;
     private Button btnToggleAnalysis;
     private ProgressBar progressBar;
+
     private UploadApi api;
     private TextToSpeech tts;
     private ExecutorService cameraExecutor;
@@ -79,32 +86,52 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
     private static final Set<String> DANGEROUS_OBJECTS = new HashSet<>(Arrays.asList(
             "car", "bicycle", "motorcycle", "bus", "truck", "person", "chair", "table"
     ));
+
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (isGranted) { startCamera(); } else {
-                    Toast.makeText(this, "카메라 권한이 필요합니다.", Toast.LENGTH_SHORT).show();
-                    finish();
+                if (isGranted) {
+                    if (previewView != null) {
+                        previewView.post(this::startCamera);
+                    }
+                } else {
+                    Toast.makeText(requireContext(), "카메라 권한이 필요합니다.", Toast.LENGTH_SHORT).show();
                 }
             });
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_obstacle);
 
-        previewView = findViewById(R.id.previewView);
-        txtResult = findViewById(R.id.txt_result);
-        btnToggleAnalysis = findViewById(R.id.btn_toggle_analysis);
-        progressBar = findViewById(R.id.progressBar);
         cameraExecutor = Executors.newSingleThreadExecutor();
-        objectDetectorHelper = new ObjectDetectorHelper(this, "1.tflite", 0.5f, 2, 5, this);
-
-        btnToggleAnalysis.setOnClickListener(v -> toggleAnalysis());
+        objectDetectorHelper = new ObjectDetectorHelper(requireContext(), "1.tflite", 0.5f, 2, 5, this);
 
         setupNetwork();
         setupTTS();
         setupSoundPool();
-        checkCameraPermission();
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_obstacle, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        previewView = view.findViewById(R.id.obstaclePreviewView);
+        txtResult = view.findViewById(R.id.obstacleTxtResult);
+        btnToggleAnalysis = view.findViewById(R.id.obstacleBtnToggleAnalysis);
+        progressBar = view.findViewById(R.id.obstacleProgressBar);
+
+        btnToggleAnalysis.setOnClickListener(v -> toggleAnalysis());
+
+        previewView.post(() -> {
+            checkCameraPermission();
+        });
+
+        resetState();
     }
 
     private void toggleAnalysis() {
@@ -121,47 +148,75 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
     }
 
     private void checkCameraPermission() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+        // ★ this -> requireContext()
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             startCamera();
         } else {
             requestPermissionLauncher.launch(Manifest.permission.CAMERA);
         }
     }
 
+    @OptIn(markerClass = ExperimentalCamera2Interop.class)
     private void startCamera() {
-        ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(this);
+        Log.d(TAG, "startCamera() called");
+        ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext());
         cameraProviderFuture.addListener(() -> {
+            Log.d(TAG, "CameraProvider future listener entered");
             try {
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
-                Preview preview = new Preview.Builder().build();
+
+                Preview preview = new Preview.Builder()
+                        .build();
+
+                if (previewView == null) {
+                    Log.w(TAG, "PreviewView is null, cannot set SurfaceProvider");
+                    return;
+                }
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
+
                 CameraSelector cameraSelector = getWideAngleCameraSelector(cameraProvider);
                 if (cameraSelector == null) {
                     cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
                 }
+
                 ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
-                        .setTargetResolution(new Size(640, 480))
+                        .setTargetResolution(new Size(640, 480)) // 분석용 해상도
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
                         .build();
+
                 imageAnalysis.setAnalyzer(cameraExecutor, imageProxy -> {
                     if (bitmapBuffer == null) {
                         bitmapBuffer = Bitmap.createBitmap(imageProxy.getWidth(), imageProxy.getHeight(), Bitmap.Config.ARGB_8888);
                     }
                     bitmapBuffer.copyPixelsFromBuffer(imageProxy.getPlanes()[0].getBuffer());
+
                     int imageRotation = imageProxy.getImageInfo().getRotationDegrees();
-                    if (isContinuousAnalysis) {
+
+                    if (isContinuousAnalysis && objectDetectorHelper != null) {
                         objectDetectorHelper.detect(bitmapBuffer, imageRotation);
                     }
+
                     imageProxy.close();
                 });
+
                 cameraProvider.unbindAll();
-                cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis);
+                Log.d(TAG, "Attempting to bindToLifecycle (Preview + Analysis)...");
+
+                cameraProvider.bindToLifecycle(getViewLifecycleOwner(), cameraSelector, preview, imageAnalysis);
+
+                Log.d(TAG, "bindToLifecycle (Preview + Analysis) successful!");
+
             } catch (ExecutionException | InterruptedException e) {
-                Log.e("CameraXApp", "Camera provider binding failed", e);
+                Log.e(TAG, "Camera provider binding failed", e);
+            } catch (IllegalArgumentException e) {
+                Log.e(TAG, "Failed to bind use cases. Unsupported combination or resolution?", e);
+            } catch (Exception e) {
+                Log.e(TAG, "Unknown error starting camera", e);
             }
-        }, ContextCompat.getMainExecutor(this));
+        }, ContextCompat.getMainExecutor(requireContext()));
     }
+
 
     @ExperimentalCamera2Interop
     @SuppressWarnings("deprecation")
@@ -189,21 +244,23 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
                 }
             }
         } catch (Exception e) {
-            Log.e("CameraXApp", "Failed to get camera characteristics.", e);
+            Log.e(TAG, "Failed to get camera characteristics.", e);
         }
         return wideAngleCameraSelector;
     }
 
     @Override
     public void onResults(List<Detection> results, long inferenceTime) {
-        if (progressBar.getVisibility() == View.VISIBLE || !isContinuousAnalysis) return;
+        if (progressBar == null || progressBar.getVisibility() == View.VISIBLE || !isContinuousAnalysis) return;
 
         boolean shouldCallCloudApi = false;
-        for (Detection detection : results) {
-            String label = detection.getCategories().get(0).getLabel();
-            if (DANGEROUS_OBJECTS.contains(label)) {
-                shouldCallCloudApi = true;
-                break;
+        if (results != null) {
+            for (Detection detection : results) {
+                String label = detection.getCategories().get(0).getLabel();
+                if (DANGEROUS_OBJECTS.contains(label)) {
+                    shouldCallCloudApi = true;
+                    break;
+                }
             }
         }
 
@@ -212,10 +269,12 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
             if (soundPool != null) {
                 soundPool.play(detectionSoundId, 1, 1, 1, 0, 1.0f);
             }
-            runOnUiThread(() -> {
-                progressBar.setVisibility(View.VISIBLE);
-                txtResult.setText("탐지 중...");
-            });
+            if (isAdded()) {
+                requireActivity().runOnUiThread(() -> {
+                    if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
+                    if (txtResult != null) txtResult.setText("탐지 중...");
+                });
+            }
             String base64Image = bitmapToBase64(bitmapBuffer);
             sendImageToServer(base64Image);
         }
@@ -223,7 +282,9 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
 
     @Override
     public void onError(String error) {
-        runOnUiThread(() -> Toast.makeText(this, error, Toast.LENGTH_SHORT).show());
+        if (isAdded()) {
+            requireActivity().runOnUiThread(() -> Toast.makeText(requireContext(), error, Toast.LENGTH_SHORT).show());
+        }
     }
 
     private void sendImageToServer(String base64Image) {
@@ -231,30 +292,84 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
         json.addProperty("image", base64Image);
         json.addProperty("level", 2);
 
+        if (api == null) {
+            Log.e(TAG, "API client is null.");
+            if (isAdded()) requireActivity().runOnUiThread(() -> resetState());
+            return;
+        }
+
         api.sendImage(json).enqueue(new Callback<JsonObject>() {
             @Override
             public void onResponse(@NonNull Call<JsonObject> call, @NonNull Response<JsonObject> response) {
+                if (!isAdded()) return;
+
                 if (response.isSuccessful() && response.body() != null) {
                     String resultText = response.body().get("result").getAsString();
-                    runOnUiThread(() -> txtResult.setText(resultText));
+                    requireActivity().runOnUiThread(() -> {
+                        if (txtResult != null) txtResult.setText(resultText);
+                    });
                     Bundle params = new Bundle();
                     params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, UTTERANCE_ID);
-                    tts.speak(resultText, TextToSpeech.QUEUE_FLUSH, params, UTTERANCE_ID);
+                    if (tts != null) {
+                        tts.speak(resultText, TextToSpeech.QUEUE_FLUSH, params, UTTERANCE_ID);
+                    }
                 } else {
-                    runOnUiThread(() -> resetState());
+                    Log.e(TAG, "API Response Not Successful. Code: " + response.code());
+                    try {
+                        if (response.errorBody() != null) {
+                            Log.e(TAG, "API Error Body: " + response.errorBody().string());
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error reading errorBody: " + e.getMessage());
+                    }
+
+                    requireActivity().runOnUiThread(() -> {
+                        if (tts != null) {
+                            tts.speak("서버 오류가 발생하여 분석을 중지합니다.", TextToSpeech.QUEUE_FLUSH, null, null);
+                        }
+
+                        isContinuousAnalysis = false;
+
+                        if (btnToggleAnalysis != null) {
+                            btnToggleAnalysis.setText("분석 시작");
+                        }
+
+                        resetState();
+
+                        if (txtResult != null) {
+                            txtResult.setText("서버 오류 발생 (Code: " + response.code() + ")");
+                        }
+                    });
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<JsonObject> call, @NonNull Throwable t) {
+                if (!isAdded()) return;
                 Log.e("RetrofitError", "Cloud API 통신 실패", t);
-                runOnUiThread(() -> resetState());
+                requireActivity().runOnUiThread(() -> {
+                    if (tts != null) {
+                        tts.speak("네트워크 오류가 발생하여 분석을 중지합니다.", TextToSpeech.QUEUE_FLUSH, null, null);
+                    }
+
+                    isContinuousAnalysis = false;
+
+                    if (btnToggleAnalysis != null) {
+                        btnToggleAnalysis.setText("분석 시작");
+                    }
+
+                    resetState();
+
+                    if (txtResult != null) {
+                        txtResult.setText("네트워크 연결 실패");
+                    }
+                });
             }
         });
     }
 
     private void setupTTS() {
-        tts = new TextToSpeech(this, status -> {
+        tts = new TextToSpeech(requireContext(), status -> {
             if (status == TextToSpeech.SUCCESS) {
                 tts.setLanguage(Locale.KOREAN);
                 tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
@@ -264,13 +379,13 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
                     @Override
                     public void onDone(String utteranceId) {
                         if (UTTERANCE_ID.equals(utteranceId)) {
-                            runOnUiThread(() -> resetState());
+                            if (isAdded()) requireActivity().runOnUiThread(() -> resetState());
                         }
                     }
 
                     @Override
                     public void onError(String utteranceId) {
-                        runOnUiThread(() -> resetState());
+                        if (isAdded()) requireActivity().runOnUiThread(() -> resetState());
                     }
                 });
             }
@@ -286,19 +401,22 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
                 .setMaxStreams(1)
                 .setAudioAttributes(audioAttributes)
                 .build();
-        detectionSoundId = soundPool.load(this, R.raw.detection_sound, 1);
+        detectionSoundId = soundPool.load(requireContext(), R.raw.detection_sound, 1);
     }
 
     private void resetState() {
-        progressBar.setVisibility(View.GONE);
-        if (isContinuousAnalysis) {
-            txtResult.setText("주변을 계속 분석 중입니다...");
-        } else {
-            txtResult.setText("분석을 시작하려면 버튼을 누르세요.");
+        if (progressBar != null) progressBar.setVisibility(View.GONE);
+        if (txtResult != null) {
+            if (isContinuousAnalysis) {
+                txtResult.setText("주변을 계속 분석 중입니다...");
+            } else {
+                txtResult.setText("분석을 시작하려면 버튼을 누르세요.");
+            }
         }
     }
 
     private String bitmapToBase64(Bitmap bitmap) {
+        if (bitmap == null) return null;
         Bitmap resizedBitmap = getResizedBitmap(bitmap, 640);
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 85, byteArrayOutputStream);
@@ -329,7 +447,7 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
                 .addInterceptor(logger)
                 .build();
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://hyunho.pythonanywhere.com/")
+                .baseUrl("https://api-v2-dot-obstacledetection.du.r.appspot.com")
                 .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
@@ -337,15 +455,49 @@ public class ObstacleActivity extends AppCompatActivity implements ObjectDetecto
     }
 
     @Override
-    protected void onDestroy() {
+    public void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause");
+        isContinuousAnalysis = false;
+        if (btnToggleAnalysis != null) {
+            btnToggleAnalysis.setText("분석 시작");
+        }
+        resetState();
+        if (tts != null) {
+            tts.stop();
+        }
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        Log.d(TAG, "onDestroyView");
+        previewView = null;
+        txtResult = null;
+        btnToggleAnalysis = null;
+        progressBar = null;
+    }
+
+    @Override
+    public void onDestroy() {
         super.onDestroy();
-        cameraExecutor.shutdown();
+        Log.d(TAG, "onDestroy");
+
+        if (cameraExecutor != null) {
+            cameraExecutor.shutdown();
+        }
         if (tts != null) {
             tts.stop();
             tts.shutdown();
+            tts = null;
         }
         if (soundPool != null) {
             soundPool.release();
+            soundPool = null;
         }
+        if (objectDetectorHelper != null) {
+            objectDetectorHelper = null;
+        }
+        api = null;
     }
 }
