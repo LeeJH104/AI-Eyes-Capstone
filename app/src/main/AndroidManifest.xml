@@ -35,13 +35,11 @@
         </activity>
 
         <activity
-            android:name=".feature.ObstacleActivity"
-            android:exported="false" />
-        <activity
             android:name=".feature.ReceiptActivity"
             android:exported="false" />
+
         <activity
-            android:name="com.example.capstone_map.feature.NavigationActivity"
+            android:name="com.example.capstone_map.feature.CombinedActivity"
             android:exported="false" />
 
     </application>
