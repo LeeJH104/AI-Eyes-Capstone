@@ -11,50 +11,16 @@ AI 기반 시각장애인 보조 앱 개발 프로젝트입니다.
 - 송현호 – 장애물 탐지
 
 ## ✨ Features
-- **메인 화면**: 음성/제스처 기반 기능 선택
-- **네비게이션**: 길안내 및 음성 안내
-- **영수증 인식**: OCR 기반 텍스트 추출
-- **장애물 탐지**: 카메라 기반 장애물 경고
+- **메인 화면**: 음성 명령 및 제스처 기반의 시각 비의존적 기능 선택 인터페이스 제공
+- **네비게이션**: 음성 및 진동 기반의 도보 경로 안내 및 경로 이탈 알림
+- **영수증 인식**: OCR 기술을 활용한 영수증 내 합계 금액 인식 및 음성 전달
+- **장애물 탐지**: 하이브리드 AI(온디바이스/클라우드)를 통한 실시간 전방 위험 요소 감지 및 음성 경고
 
 ## 🛠 개발 환경
 - Language: Java (Android), Python (AI)
 - Framework: Android Studio, Jupyter Notebook
 - Tools: TMAP API, OCR, Object Detection
 - Collaboration: GitHub
-
-## 🧱 브랜치 전략
-- main: 최종 안정 버전
-- dev: 공통 코드 및 메인 화면
-- feature/nav, feature/receipt, feature/obstacle 등
-
-## 📁 폴더 구조
- 예시 :
-  
-  com.example.aieyes/
-  
-  ├── feature/   기능 및 화면(Activity, Fragment)
-
-  │   ├── MainActivity.java
-  
-  │   ├── NavigationActivity.java
-  
-  │   ├── ReceiptActivity.java
-  
-  │   ├── ObstacleActivity.java
-  
-  │   └── ... (필요 시 Fragment 등)
-  
-  ├── utils/    공통 유틸 (TTSManager 등)
-  
-  │   ├── TTSManager.java
-  
-  │   ├── STTManager.java
-  
-  │   ├── VibrationHelper.java
-  
-  │   ├── GestureManager.java
-  
-  │   └── PermissionHelper.java
 
 # 📖 사용자 매뉴얼: Ai Eyes (시각장애인 보조 앱)
 
@@ -145,12 +111,5 @@ AI 기반 시각장애인 보조 앱 개발 프로젝트입니다.
 3. AI OCR 분석 후 결과 안내:
    - ✅ 성공: `"합계는 OO원입니다."`  
    - ❌ 실패: `"합계를 인식하지 못했습니다. 다시 촬영해 주세요."`
-
----
-
-## 6. 문제 해결 및 문의
-앱 사용 중 문제가 발생하면 아래로 문의하세요.  
-- 📧 Email: 추후 작성
-- 🌐 Website: 추후 작성(github)
 
 ---
