@@ -1,12 +1,13 @@
 plugins {
     id("com.android.library")
-    id("org.jetbrains.kotlin.android") version "1.9.0"
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.0"
+    // ⚠️ 참고: Kotlin 버전을 "2.2.0"에서 "1.9.0" 또는 "1.8.10"처럼
+    // app 모듈과 동일한 버전으로 맞추는 것을 강력히 권장합니다.
+    id("org.jetbrains.kotlin.android") version "2.2.0"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.0"
 }
 
 android {
-    // R 패키지용 네임스페이스 (코드의 package와 달라도 됨)
-    namespace = "com.example.capstone_map"   // ← 이렇게 바꿔
+    namespace = "com.example.capstone_map"
     compileSdk = 34
 
     defaultConfig {
@@ -15,7 +16,6 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    // release/debug 따로 필요 없으면 생략 가능
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -29,6 +29,11 @@ android {
         viewBinding = true
     }
 
+    // TFLite 모델 파일(.tflite)을 압축하지 않도록 설정
+    aaptOptions {
+        noCompress.add("tflite")
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -37,7 +42,7 @@ android {
 }
 
 dependencies {
-    // === 네가 원래 app에서 쓰던 것들 중, navigation 코드가 직접 쓰는 것들을 여기도 추가 ===
+    // === 기존 navigation 모듈 의존성 ===
     implementation("com.google.code.gson:gson:2.13.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
     implementation("androidx.activity:activity-ktx:1.7.2")
@@ -45,15 +50,33 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation("com.squareup.okhttp3:okhttp:4.9.3")
 
-    // 버전 카탈로그 사용하는 항목들
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
 
-    // (쓰는 경우만) Tmap JAR — navigation/libs/ 로 복사해 두고 api 로 노출
     api(files("libs/com.skt.Tmap_1.76.jar"))
-    implementation(libs.androidx.camera.view)
+
+    // --- ▼ ObstacleDetectionFragment가 필요로 하는 의존성 추가 ▼ ---
+
+    // CameraX (view는 이미 있음)
+    // (참고: 버전은 app 모듈에서 사용하던 버전과 통일하는 것이 좋습니다.)
+    implementation("androidx.camera:camera-core:1.3.1")
+    implementation("androidx.camera:camera-lifecycle:1.3.1")
+    implementation("androidx.camera:camera-camera2:1.3.1")
+    implementation(libs.androidx.camera.view) // (이 줄은 이미 있었습니다)
+
+    // TensorFlow Lite (Task Vision)
+    implementation("org.tensorflow:tensorflow-lite-task-vision:0.4.4")
+    // TensorFlow Lite (Support)
+    implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
+
+    // Retrofit & OkHttp Logging
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.9.3") // okhttp와 버전 맞춤
+
+    // --- ▲ 의존성 추가 끝 ▲ ---
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
