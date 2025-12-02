@@ -65,6 +65,8 @@ class NavigationViewModel(
     private var alignmentStableCount = 0
     private val REQUIRED_STABLE_CHECKS = 3  // 0.15초 × 3 = 0.45초
 
+    private var isTransitioningToGuidance = false  // ← 추가
+
 
 
 
@@ -264,6 +266,9 @@ class NavigationViewModel(
      * */
 
     fun checkAndGuideDirectionAlignment() {
+
+        if (isTransitioningToGuidance) return
+
         val azimuth = stateViewModel.currentAzimuth.value ?: return
         val curr    = stateViewModel.currentLocation.value ?: return
 
@@ -314,7 +319,11 @@ class NavigationViewModel(
 
             //문제 4번  카운트
             alignmentStableCount++
+
             // 카운트증가
+
+
+            isTransitioningToGuidance = true  // ← 플래그 설정
 
 
             if (alignmentStableCount >= REQUIRED_STABLE_CHECKS) {
@@ -326,6 +335,9 @@ class NavigationViewModel(
 
                 forceSpeak("정렬 완료") {
                     updateState(GuidingNavigation)
+                    // 전환 완료 후 초기화
+                    isTransitioningToGuidance = false
+
                 }
                 alignmentStableCount = 0
                 lastDirection = null

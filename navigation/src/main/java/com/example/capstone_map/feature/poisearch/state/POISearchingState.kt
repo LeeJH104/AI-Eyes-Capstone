@@ -66,8 +66,12 @@ object ParsingCompleted : POISearchState     {
 // 5. 후보지 나열 상태 (후보지들 중 하나씩 보여주거나 안내)
 object ListingCandidates : POISearchState {
     override fun handle(viewModel: POISearchViewModel) {
-        viewModel.readCurrentPoi() // 첫 번째 후보지 읽기
-        Log.d("STATE", "ListingCandidates.handle()")
+
+        viewModel.speak("다음후보지는 오른쪽스와이프, 해당 후보지를 선택하려면 왼쪽 스와이프를 진행하세요") {
+            // TTS 완료 후 콜백
+            viewModel.updateState(ListingCandidates)
+        }
+
 
     }
 
