@@ -287,6 +287,8 @@ class NavigationViewModel(
 
         if (absDiff > threshold) { //방향이 아직 달라
             alignmentStableCount = 0  // 카운터 리셋
+            Log.i("ALIGN_CHECK", "❌ 정렬 안됨 (absDiff > $threshold)")
+
 
             val currentDirection = if (diff > 0) "오른쪽" else "왼쪽"
 
@@ -304,6 +306,7 @@ class NavigationViewModel(
 
             if (currentDirection != lastDirection) {
                 // 방향 변경 감지 → 즉시 알림
+                Log.i("ALIGN_CHECK", "🔄 방향 변경: $lastDirection → $currentDirection (강제 발화)")
                 forceSpeak(" $currentDirection 으로")
                 lastDirection = currentDirection  //  현재 방향 저장
             } else {
@@ -315,6 +318,7 @@ class NavigationViewModel(
         // else: 같은 방향
         } else {
 
+            Log.i("ALIGN_CHECK", "✅ 정렬됨! (absDiff ≤ $threshold)")
 
 
             //문제 4번  카운트
@@ -322,10 +326,11 @@ class NavigationViewModel(
 
             // 카운트증가
 
-            isTransitioningToGuidance = true  // ← 플래그 설정
 
 
             if (alignmentStableCount >= REQUIRED_STABLE_CHECKS) {
+
+                isTransitioningToGuidance = true  // ← 플래그 설정
 
                 isAlignmentCompleted = true //정렬 완료 -> 정렬된 상태에서 forceSpeak그만
 
@@ -333,9 +338,14 @@ class NavigationViewModel(
                 vibratePattern(longArrayOf(0, 300, 150, 300, 150, 300))
 
                 forceSpeak("정렬 완료") {
+                    Log.i("ALIGN_CHECK", "TTS 완료 콜백 → GuidingNavigation 전환")
+
+
                     updateState(GuidingNavigation)
+
+
                     // 전환 완료 후 초기화
-                    isTransitioningToGuidance = false
+                    //isTransitioningToGuidance = false
 
                 }
                 alignmentStableCount = 0
@@ -504,13 +514,23 @@ class NavigationViewModel(
 
 
     fun startAlignmentLoop(intervalMs: Long = 300L) {
-        if (alignmentJob?.isActive == true) return
+        Log.e("LOOP_DEBUG", "========== startAlignmentLoop 시작 ==========")
+
+        if (alignmentJob?.isActive == true) {
+            Log.e("LOOP_DEBUG", "이미 실행 중")
+            return
+
+        }
         alignmentJob = viewModelScope.launch(Dispatchers.Main) {
-            while (isActive && navigationState.value is AligningDirection) {
+
+            while (isActive && navigationState.value is AligningDirection && !isTransitioningToGuidance) {
+                Log.d("LOOP_DEBUG", "체크 함수 호출 | isActive=$isActive | state=${navigationState.value?.javaClass?.simpleName}")
+                isAlignmentCompleted
                 checkAndGuideDirectionAlignment()   // ← 아래 함수가 말해줌
                 delay(intervalMs) // delay는 왜있는가 -> 센서 갱신보다 빠른 Check는 의미없이
                 //리소스만 잡아먹기 때문
             }
+            Log.e("LOOP_DEBUG", "루프 종료")
         }
     }
 
@@ -554,6 +574,19 @@ class NavigationViewModel(
         val absDiff = kotlin.math.abs(diff)
         val threshold = 30f
 
+
+        // ✅ 먼저 체크
+        if (isSpeaking) {
+            Log.d("각도측정", "TTS 중이므로 스킵")
+            return
+        }
+
+        // ✅ 시간 체크
+        val now = System.currentTimeMillis()
+        if (now - lastSpeakAt < speakIntervalMs) {
+            Log.d("각도측정", "TTS 쿨타임 중 (${now - lastSpeakAt}ms)")
+            return
+        }
 
         if (isSpeaking) return
 
