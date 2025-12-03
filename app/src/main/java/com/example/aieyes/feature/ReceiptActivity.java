@@ -61,7 +61,7 @@ public class ReceiptActivity extends AppCompatActivity {
     private static final String TAG = "ReceiptActivity";
     // private static final String SERVER_URL = "http://192.168.0.215:5000/api/receipt/process-receipt";
     // ▼▼▼ ngrok 주소는 실행할 때마다 여기를 바꿔주세요 ▼▼▼
-    private static final String SERVER_URL = "https://b3cce84659a5.ngrok-free.app/api/receipt/process-receipt";
+    private static final String SERVER_URL = "https://ee751eac7776.ngrok-free.app/api/receipt/process-receipt";
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 101;
     private static final int AUDIO_PERMISSION_REQUEST_CODE = 102;
 
