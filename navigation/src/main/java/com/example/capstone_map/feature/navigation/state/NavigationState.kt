@@ -65,7 +65,10 @@ object GuidingNavigation : NavigationState {
     override fun handle(viewModel: NavigationViewModel) {
 
         viewModel.stopAlignmentLoop()
-        viewModel.startGuidanceLoop(500L)   // ← 도착할 때까지 계속
+        viewModel.speak("안내를 시작합니다",
+            { viewModel.startGuidanceLoop(500L) }   // ← 도착할 때까지 계속
+            )
+
     }
 }
 
