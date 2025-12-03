@@ -552,7 +552,7 @@ class NavigationViewModel(
         val bearing = ((curr.bearingTo(target) + 360) % 360)
         val diff = ((bearing - azimuth + 540) % 360) - 180
         val absDiff = kotlin.math.abs(diff)
-        val threshold = 20f
+        val threshold = 30f
 
 
         if (isSpeaking) return

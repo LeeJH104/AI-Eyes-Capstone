@@ -1,19 +1,25 @@
-package com.example.capstone_map.feature; // ★ 패키지 이름 유지
+package com.example.capstone_map.feature; // 패키지 이름 유지
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.content.Context; // Context 추가
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.hardware.camera2.CameraCharacteristics;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
+import android.os.Build; // Build 추가
 import android.os.Bundle;
+import android.os.VibrationEffect; // 진동 효과 추가
+import android.os.Vibrator; // 진동 기능 추가
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.util.Base64;
 import android.util.Log;
 import android.util.Size;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -36,9 +42,10 @@ import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.GestureDetectorCompat;
 import androidx.fragment.app.Fragment;
 
-import com.example.capstone_map.R; // ★ R 임포트 유지
+import com.example.capstone_map.R;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.JsonObject;
 
@@ -87,6 +94,9 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
             "car", "bicycle", "motorcycle", "bus", "truck", "person", "chair", "table"
     ));
 
+    private GestureDetectorCompat gestureDetector;
+    private Vibrator vibrator; // [추가] 진동 객체 선언
+
     private final ActivityResultLauncher<String> requestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
@@ -104,6 +114,9 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
 
         cameraExecutor = Executors.newSingleThreadExecutor();
         objectDetectorHelper = new ObjectDetectorHelper(requireContext(), "1.tflite", 0.5f, 2, 5, this);
+
+        // [추가] 진동 서비스 초기화
+        vibrator = (Vibrator) requireContext().getSystemService(Context.VIBRATOR_SERVICE);
 
         setupNetwork();
         setupTTS();
@@ -127,6 +140,28 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
 
         btnToggleAnalysis.setOnClickListener(v -> toggleAnalysis());
 
+        gestureDetector = new GestureDetectorCompat(requireContext(), new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public boolean onDown(MotionEvent e) {
+                return true;
+            }
+
+            @Override
+            public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+                if (e1 == null || e2 == null) return false;
+                float diffY = e2.getY() - e1.getY();
+                if (Math.abs(diffY) > 100 && Math.abs(velocityY) > 100) {
+                    if (diffY < 0) { // 위쪽 스와이프
+                        toggleAnalysis();
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+
+        view.setOnTouchListener((v, event) -> gestureDetector.onTouchEvent(event));
+
         previewView.post(() -> {
             checkCameraPermission();
         });
@@ -148,7 +183,6 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
     }
 
     private void checkCameraPermission() {
-        // ★ this -> requireContext()
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             startCamera();
         } else {
@@ -158,29 +192,19 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
 
     @OptIn(markerClass = ExperimentalCamera2Interop.class)
     private void startCamera() {
-        Log.d(TAG, "startCamera() called");
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext());
         cameraProviderFuture.addListener(() -> {
-            Log.d(TAG, "CameraProvider future listener entered");
             try {
                 ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
+                Preview preview = new Preview.Builder().build();
 
-                Preview preview = new Preview.Builder()
-                        .build();
-
-                if (previewView == null) {
-                    Log.w(TAG, "PreviewView is null, cannot set SurfaceProvider");
-                    return;
-                }
+                if (previewView == null) return;
                 preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
-                CameraSelector cameraSelector = getWideAngleCameraSelector(cameraProvider);
-                if (cameraSelector == null) {
-                    cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
-                }
+                CameraSelector cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA;
 
                 ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
-                        .setTargetResolution(new Size(640, 480)) // 분석용 해상도
+                        .setTargetResolution(new Size(640, 480))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
                         .build();
@@ -190,63 +214,21 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
                         bitmapBuffer = Bitmap.createBitmap(imageProxy.getWidth(), imageProxy.getHeight(), Bitmap.Config.ARGB_8888);
                     }
                     bitmapBuffer.copyPixelsFromBuffer(imageProxy.getPlanes()[0].getBuffer());
-
                     int imageRotation = imageProxy.getImageInfo().getRotationDegrees();
 
                     if (isContinuousAnalysis && objectDetectorHelper != null) {
                         objectDetectorHelper.detect(bitmapBuffer, imageRotation);
                     }
-
                     imageProxy.close();
                 });
 
                 cameraProvider.unbindAll();
-                Log.d(TAG, "Attempting to bindToLifecycle (Preview + Analysis)...");
-
                 cameraProvider.bindToLifecycle(getViewLifecycleOwner(), cameraSelector, preview, imageAnalysis);
 
-                Log.d(TAG, "bindToLifecycle (Preview + Analysis) successful!");
-
-            } catch (ExecutionException | InterruptedException e) {
-                Log.e(TAG, "Camera provider binding failed", e);
-            } catch (IllegalArgumentException e) {
-                Log.e(TAG, "Failed to bind use cases. Unsupported combination or resolution?", e);
             } catch (Exception e) {
-                Log.e(TAG, "Unknown error starting camera", e);
+                Log.e(TAG, "Camera error", e);
             }
         }, ContextCompat.getMainExecutor(requireContext()));
-    }
-
-
-    @ExperimentalCamera2Interop
-    @SuppressWarnings("deprecation")
-    private CameraSelector getWideAngleCameraSelector(ProcessCameraProvider cameraProvider) {
-        CameraSelector wideAngleCameraSelector = null;
-        float minFocalLength = Float.MAX_VALUE;
-        try {
-            for (CameraInfo cameraInfo : cameraProvider.getAvailableCameraInfos()) {
-                if (Camera2CameraInfo.from(cameraInfo).getCameraCharacteristic(CameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_BACK) {
-                    @SuppressLint("RestrictedApi")
-                    CameraCharacteristics characteristics = Camera2CameraInfo.extractCameraCharacteristics(cameraInfo);
-                    float[] focalLengths = characteristics.get(CameraCharacteristics.LENS_INFO_AVAILABLE_FOCAL_LENGTHS);
-                    if (focalLengths != null && focalLengths.length > 0) {
-                        float currentMinFocalLength = focalLengths[0];
-                        for (float length : focalLengths) {
-                            if (length < currentMinFocalLength) {
-                                currentMinFocalLength = length;
-                            }
-                        }
-                        if (currentMinFocalLength < minFocalLength) {
-                            minFocalLength = currentMinFocalLength;
-                            wideAngleCameraSelector = cameraInfo.getCameraSelector();
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to get camera characteristics.", e);
-        }
-        return wideAngleCameraSelector;
     }
 
     @Override
@@ -266,9 +248,21 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
 
         if (shouldCallCloudApi && (System.currentTimeMillis() - lastCloudApiCallTime > CLOUD_API_INTERVAL_MS)) {
             lastCloudApiCallTime = System.currentTimeMillis();
+
+            // [추가] 위험 감지 시 효과음 재생
             if (soundPool != null) {
                 soundPool.play(detectionSoundId, 1, 1, 1, 0, 1.0f);
             }
+
+            // [추가] 위험 감지 시 진동 울림 (500ms)
+            if (vibrator != null && vibrator.hasVibrator()) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    vibrator.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
+                } else {
+                    vibrator.vibrate(500);
+                }
+            }
+
             if (isAdded()) {
                 requireActivity().runOnUiThread(() -> {
                     if (progressBar != null) progressBar.setVisibility(View.VISIBLE);
@@ -293,7 +287,6 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
         json.addProperty("level", 2);
 
         if (api == null) {
-            Log.e(TAG, "API client is null.");
             if (isAdded()) requireActivity().runOnUiThread(() -> resetState());
             return;
         }
@@ -305,39 +298,31 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
 
                 if (response.isSuccessful() && response.body() != null) {
                     String resultText = response.body().get("result").getAsString();
+
                     requireActivity().runOnUiThread(() -> {
                         if (txtResult != null) txtResult.setText(resultText);
                     });
-                    Bundle params = new Bundle();
-                    params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, UTTERANCE_ID);
+
                     if (tts != null) {
-                        tts.speak(resultText, TextToSpeech.QUEUE_FLUSH, params, UTTERANCE_ID);
+                        Bundle params = new Bundle();
+                        params.putString(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID, UTTERANCE_ID);
+                        int ttsResult = tts.speak(resultText, TextToSpeech.QUEUE_FLUSH, params, UTTERANCE_ID);
+
+                        if (ttsResult == TextToSpeech.ERROR) {
+                            requireActivity().runOnUiThread(() -> resetState());
+                        }
+                    } else {
+                        if (previewView != null) {
+                            previewView.postDelayed(() -> resetState(), 2000);
+                        }
                     }
+
                 } else {
-                    Log.e(TAG, "API Response Not Successful. Code: " + response.code());
-                    try {
-                        if (response.errorBody() != null) {
-                            Log.e(TAG, "API Error Body: " + response.errorBody().string());
-                        }
-                    } catch (Exception e) {
-                        Log.e(TAG, "Error reading errorBody: " + e.getMessage());
-                    }
-
+                    Log.e(TAG, "API Error: " + response.code());
                     requireActivity().runOnUiThread(() -> {
-                        if (tts != null) {
-                            tts.speak("서버 오류가 발생하여 분석을 중지합니다.", TextToSpeech.QUEUE_FLUSH, null, null);
-                        }
-
-                        isContinuousAnalysis = false;
-
-                        if (btnToggleAnalysis != null) {
-                            btnToggleAnalysis.setText("분석 시작");
-                        }
-
-                        resetState();
-
-                        if (txtResult != null) {
-                            txtResult.setText("서버 오류 발생 (Code: " + response.code() + ")");
+                        if (txtResult != null) txtResult.setText("서버 오류 (" + response.code() + ")");
+                        if (previewView != null) {
+                            previewView.postDelayed(() -> resetState(), 2000);
                         }
                     });
                 }
@@ -346,22 +331,11 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
             @Override
             public void onFailure(@NonNull Call<JsonObject> call, @NonNull Throwable t) {
                 if (!isAdded()) return;
-                Log.e("RetrofitError", "Cloud API 통신 실패", t);
+                Log.e("RetrofitError", "Failure", t);
                 requireActivity().runOnUiThread(() -> {
-                    if (tts != null) {
-                        tts.speak("네트워크 오류가 발생하여 분석을 중지합니다.", TextToSpeech.QUEUE_FLUSH, null, null);
-                    }
-
-                    isContinuousAnalysis = false;
-
-                    if (btnToggleAnalysis != null) {
-                        btnToggleAnalysis.setText("분석 시작");
-                    }
-
-                    resetState();
-
-                    if (txtResult != null) {
-                        txtResult.setText("네트워크 연결 실패");
+                    if (txtResult != null) txtResult.setText("네트워크 오류");
+                    if (previewView != null) {
+                        previewView.postDelayed(() -> resetState(), 2000);
                     }
                 });
             }
@@ -379,13 +353,17 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
                     @Override
                     public void onDone(String utteranceId) {
                         if (UTTERANCE_ID.equals(utteranceId)) {
-                            if (isAdded()) requireActivity().runOnUiThread(() -> resetState());
+                            if (isAdded()) {
+                                requireActivity().runOnUiThread(() -> resetState());
+                            }
                         }
                     }
 
                     @Override
                     public void onError(String utteranceId) {
-                        if (isAdded()) requireActivity().runOnUiThread(() -> resetState());
+                        if (isAdded()) {
+                            requireActivity().runOnUiThread(() -> resetState());
+                        }
                     }
                 });
             }
@@ -410,7 +388,7 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
             if (isContinuousAnalysis) {
                 txtResult.setText("주변을 계속 분석 중입니다...");
             } else {
-                txtResult.setText("분석을 시작하려면 버튼을 누르세요.");
+                txtResult.setText("분석을 시작하려면 화면을 위로 스와이프하세요.");
             }
         }
     }
@@ -457,7 +435,6 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
     @Override
     public void onPause() {
         super.onPause();
-        Log.d(TAG, "onPause");
         isContinuousAnalysis = false;
         if (btnToggleAnalysis != null) {
             btnToggleAnalysis.setText("분석 시작");
@@ -471,7 +448,6 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        Log.d(TAG, "onDestroyView");
         previewView = null;
         txtResult = null;
         btnToggleAnalysis = null;
@@ -481,8 +457,6 @@ public class ObstacleDetectionFragment extends Fragment implements ObjectDetecto
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.d(TAG, "onDestroy");
-
         if (cameraExecutor != null) {
             cameraExecutor.shutdown();
         }
