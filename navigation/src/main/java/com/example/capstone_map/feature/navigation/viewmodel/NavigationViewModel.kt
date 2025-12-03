@@ -447,13 +447,13 @@ class NavigationViewModel(
             val distance = location.distanceTo(targetLocation)
             Log.d("NAVIGATION", "index $index 도착지까지 거리: ${"%.2f".format(distance)}m")
 
-            if (distance < 10f) {
+            if (distance < 7f) {
                 val description = feature.properties.description
                 if (!description.isNullOrBlank()) {
                     Log.i("NAVIGATION", " 안내 시작: $description" + isSpeaking)
                     lastSpokenIndex = index
 
-                    speak(description) {
+                    speak("잠시후" + description) {
                         Log.i("NAVIGATION", " 안내 완료: index $index")
                         //lastSpokenIndex = index
 
@@ -505,7 +505,7 @@ class NavigationViewModel(
 
     private fun handleArrival() {
         Log.i("NAVIGATION", " 목적지 도착 처리 시작")
-        speak("목적지에 도착했습니다. 안내를 종료합니다.") {
+        speak("목적지 주변에 도착했습니다. 안내를 종료합니다.") {
             updateState(NavigationFinished)
         }
     }
@@ -599,9 +599,9 @@ class NavigationViewModel(
         if (absDiff > threshold) {
 
 
-            val dir = if (diff > 0) "오른쪽" else "왼쪽"
-            speak("휴대폰을 $dir 으로 돌려주세요")
-            lastSpeakAt = System.currentTimeMillis()
+//            val dir = if (diff > 0) "오른쪽" else "왼쪽"
+//            speak("휴대폰을 $dir 으로 돌려주세요")
+//            lastSpeakAt = System.currentTimeMillis()
         }
 
     }
