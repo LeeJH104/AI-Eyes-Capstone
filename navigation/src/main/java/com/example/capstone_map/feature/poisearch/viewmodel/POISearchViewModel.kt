@@ -184,9 +184,9 @@ class POISearchViewModel(
 
     // 5. 파싱완료후 다음 상태 (후보지 나열상태)로
     fun showNextCandidate() {
+
         updateState(ListingCandidates)
 
-        speak("다음후보지는 오른쪽스와이프 , 해당 후보지를 선택하려면 왼쪽 스와이프를 진행하세요")
     }
 
 
