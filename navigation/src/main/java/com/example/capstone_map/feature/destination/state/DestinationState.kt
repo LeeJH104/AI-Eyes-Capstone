@@ -9,7 +9,7 @@ sealed interface DestinationState : BaseState<DestinationViewModel>
 // 1단계: 목적지 요청
 object AwaitingDestinationInput : DestinationState {
     override fun handle(viewModel: DestinationViewModel) {
-        viewModel.speak("스와이프를 오른쪽으로 넘긴후 목적지를 이야기해주세요")
+        viewModel.speak("스와이프를 오른쪽으로 넘긴후 목적지를 이야기해주세요. 장애물 탐지를 시작하려면 위쪽으로 스와이프 해주세요.")
     }
 
     override fun onPrimaryInput(viewModel: DestinationViewModel) {
