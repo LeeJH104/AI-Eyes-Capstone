@@ -2,20 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
 
-
-        <!-- 🔥 CombinedActivity를 시작 액티비티로 설정 -->
         <activity
             android:name="com.example.capstone_map.feature.CombinedActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            android:exported="false">
         </activity>
-
-        <activity
-            android:name=".feature.NavigationActivity"
-            android:exported="false"/>
 
     </application>
 
