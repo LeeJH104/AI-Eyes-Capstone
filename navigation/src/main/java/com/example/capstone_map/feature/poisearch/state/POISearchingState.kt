@@ -69,7 +69,7 @@ object ListingCandidates : POISearchState {
 
         viewModel.speak("다음후보지는 오른쪽스와이프, 해당 후보지를 선택하려면 왼쪽 스와이프를 진행하세요") {
             // TTS 완료 후 콜백
-            viewModel.updateState(ListingCandidates)
+            viewModel.readCurrentPoi()
         }
 
 

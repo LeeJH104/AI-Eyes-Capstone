@@ -322,7 +322,6 @@ class NavigationViewModel(
 
             // 카운트증가
 
-
             isTransitioningToGuidance = true  // ← 플래그 설정
 
 
@@ -561,7 +560,12 @@ class NavigationViewModel(
         // TTS 남발 방지(네 코드에 already 존재)
         if (System.currentTimeMillis() - lastSpeakAt < speakIntervalMs) return
 
+        Log.d("각도측정", "absdiff = $absDiff" )
+
+
         if (absDiff > threshold) {
+
+
             val dir = if (diff > 0) "오른쪽" else "왼쪽"
             speak("휴대폰을 $dir 으로 돌려주세요")
             lastSpeakAt = System.currentTimeMillis()
