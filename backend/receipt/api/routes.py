@@ -5,9 +5,13 @@
 
 from flask import Blueprint, request, jsonify
 from . import processor_gemma_ver as processor
+from threading import Lock
 
 # 블루프린트 생성
 receipt_bp = Blueprint('receipt_bp', __name__)
+
+# 동시 요청을 순차 처리하기 위한 전역 Lock (간단 직렬화)
+_process_lock = Lock()
 
 @receipt_bp.route('/process-receipt', methods=['POST'])
 def process_receipt_route():
@@ -21,8 +25,9 @@ def process_receipt_route():
         file = request.files['image']
         image_bytes = file.read()
 
-        # OCR + LLM 구조화까지 한 번에 처리
-        result = processor.receipt_processor.process_receipt_image(image_bytes)
+        # OCR + LLM 구조화까지 한 번에 처리 (직렬화: 한 번에 하나씩 처리)
+        with _process_lock:
+            result = processor.receipt_processor.process_receipt_image(image_bytes)
         if not result.get("success"):
             return jsonify({"error": result.get("error", "Receipt processing failed")}), 500
 

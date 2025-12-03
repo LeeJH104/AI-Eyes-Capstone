@@ -7,6 +7,13 @@ D:/GaramsRealWork/capstone/.venv/Scripts/python.exe d:/GaramsRealWork/capstone/b
 터미널 2
 D:/GaramsRealWork/capstone/.venv/Scripts/python.exe d:/GaramsRealWork/capstone/backend/test_client.py
 
+n그록
+ngrok config add-authtoken 2T88Ef1X6M2rMXjRk6iBWdeg2zD_2rud73gF6kqH8EbyLFaN3
+ngrok http 5000
+-> SERVER_URL = "https://새주소.ngrok-free.app/api/receipt/process-receipt"
+
+
+
 /home/BoringStarG/mysite/flask_app.py
 
 python3.12
